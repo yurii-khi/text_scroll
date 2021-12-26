@@ -5,9 +5,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 class TextScroller extends StatefulWidget {
-  const TextScroller({
+  const TextScroller(
+    this.text, {
     Key? key,
-    required this.text,
     this.numberOfReps,
     this.delayBefore,
   }) : super(key: key);
