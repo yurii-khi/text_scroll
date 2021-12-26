@@ -1,5 +1,7 @@
 library text_scroller;
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 class TextScroller extends StatefulWidget {
@@ -20,14 +22,21 @@ class TextScroller extends StatefulWidget {
 
 class _TextScrollerState extends State<TextScroller> {
   final _scrollController = ScrollController();
+  Timer? _timer;
+  bool _running = false;
+  int _counter = 0;
 
   @override
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance?.addPostFrameCallback((_) {
-      _run();
-    });
+    WidgetsBinding.instance?.addPostFrameCallback(_initScroller);
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -39,25 +48,56 @@ class _TextScrollerState extends State<TextScroller> {
     );
   }
 
+  Future<void> _initScroller(_) async {
+    await _delayBefore();
+
+    _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      final int? maxReps = widget.numberOfReps;
+      if (maxReps != null && _counter >= maxReps) {
+        timer.cancel();
+        return;
+      }
+
+      if (!_running) _run();
+    });
+  }
+
   Future<void> _run() async {
-    final Duration delayBefore =
-        widget.delayBefore ?? const Duration(seconds: 0);
-    await Future<dynamic>.delayed(delayBefore);
+    _running = true;
 
     final int? maxReps = widget.numberOfReps;
+    if (maxReps == null || _counter < maxReps) {
+      _counter++;
 
-    for (int i = 0; i < (maxReps ?? 99999); i++) {
-      await _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(seconds: 2),
-        curve: Curves.linear,
-      );
-      if (!mounted) break;
-      await _scrollController.animateTo(
-        _scrollController.position.minScrollExtent,
-        duration: const Duration(seconds: 2),
-        curve: Curves.linear,
-      );
+      await _animateBouncing();
     }
+
+    _running = false;
+  }
+
+  Future<void> _animateBouncing() async {
+    if (!mounted) return;
+    await _scrollController.animateTo(
+      _scrollController.position.maxScrollExtent,
+      duration: const Duration(seconds: 2),
+      curve: Curves.linear,
+    );
+    if (!mounted) return;
+    await _scrollController.animateTo(
+      _scrollController.position.minScrollExtent,
+      duration: const Duration(seconds: 2),
+      curve: Curves.linear,
+    );
+  }
+
+  Future<void> _delayBefore() async {
+    final Duration? delayBefore = widget.delayBefore;
+    if (delayBefore == null) return;
+
+    await Future<dynamic>.delayed(delayBefore);
   }
 }
