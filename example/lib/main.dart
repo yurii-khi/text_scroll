@@ -46,6 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
               'This is the sample text for Flutter TextScroller plugin, '
               'showing \'numberOfReps\' parameter (2 reps).',
               numberOfReps: 2,
+              style: TextStyle(decoration: TextDecoration.underline),
             ),
             TextScroller('This is the sample text'),
           ],

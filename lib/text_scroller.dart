@@ -8,11 +8,13 @@ class TextScroller extends StatefulWidget {
   const TextScroller(
     this.text, {
     Key? key,
+    this.style,
     this.numberOfReps,
     this.delayBefore,
   }) : super(key: key);
 
   final String text;
+  final TextStyle? style;
   final int? numberOfReps;
   final Duration? delayBefore;
 
@@ -44,7 +46,10 @@ class _TextScrollerState extends State<TextScroller> {
     return SingleChildScrollView(
       controller: _scrollController,
       scrollDirection: Axis.horizontal,
-      child: Text(widget.text),
+      child: Text(
+        widget.text,
+        style: widget.style,
+      ),
     );
   }
 
