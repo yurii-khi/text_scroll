@@ -39,14 +39,14 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: const <Widget>[
             TextScroller(
-              'This is the sample text for Flutter TextScroller plugin. '
-              'This is the sample text for Flutter TextScroller plugin.',
+              'This is the sample text for Flutter TextScroller plugin. ',
             ),
             TextScroller(
               'This is the sample text for Flutter TextScroller plugin, '
               'showing \'numberOfReps\' parameter (2 reps).',
               numberOfReps: 2,
               style: TextStyle(decoration: TextDecoration.underline),
+              mode: TextScrollerMode.bouncing,
             ),
             TextScroller('This is the sample text'),
           ],

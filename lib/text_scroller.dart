@@ -11,12 +11,14 @@ class TextScroller extends StatefulWidget {
     this.style,
     this.numberOfReps,
     this.delayBefore,
+    this.mode = TextScrollerMode.endless,
   }) : super(key: key);
 
   final String text;
   final TextStyle? style;
   final int? numberOfReps;
   final Duration? delayBefore;
+  final TextScrollerMode mode;
 
   @override
   State<TextScroller> createState() => _TextScrollerState();
@@ -24,6 +26,7 @@ class TextScroller extends StatefulWidget {
 
 class _TextScrollerState extends State<TextScroller> {
   final _scrollController = ScrollController();
+  String? _endlessText;
   Timer? _timer;
   bool _running = false;
   int _counter = 0;
@@ -47,7 +50,7 @@ class _TextScrollerState extends State<TextScroller> {
       controller: _scrollController,
       scrollDirection: Axis.horizontal,
       child: Text(
-        widget.text,
+        _endlessText ?? widget.text,
         style: widget.style,
       ),
     );
@@ -78,10 +81,43 @@ class _TextScrollerState extends State<TextScroller> {
     if (maxReps == null || _counter < maxReps) {
       _counter++;
 
-      await _animateBouncing();
+      switch (widget.mode) {
+        case TextScrollerMode.bouncing:
+          {
+            await _animateBouncing();
+            break;
+          }
+        default:
+          {
+            await _animateEndless();
+          }
+      }
     }
 
     _running = false;
+  }
+
+  Future<void> _animateEndless() async {
+    if (!mounted) return;
+
+    final ScrollPosition position = _scrollController.position;
+    final bool needsScrolling = position.maxScrollExtent > 0;
+    if (!needsScrolling) {
+      if (_endlessText != null) setState(() => _endlessText = null);
+      return;
+    }
+    setState(() => _endlessText ??= widget.text + ' ' + widget.text);
+
+    final double singleRoundExtent =
+        (position.maxScrollExtent + position.viewportDimension) / 2;
+
+    await _scrollController.animateTo(
+      singleRoundExtent,
+      duration: const Duration(seconds: 5),
+      curve: Curves.linear,
+    );
+    if (!mounted) return;
+    _scrollController.jumpTo(position.minScrollExtent);
   }
 
   Future<void> _animateBouncing() async {
@@ -105,4 +141,9 @@ class _TextScrollerState extends State<TextScroller> {
 
     await Future<dynamic>.delayed(delayBefore);
   }
+}
+
+enum TextScrollerMode {
+  bouncing,
+  endless,
 }
