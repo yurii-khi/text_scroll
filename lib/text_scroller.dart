@@ -11,6 +11,7 @@ class TextScroller extends StatefulWidget {
     this.style,
     this.numberOfReps,
     this.delayBefore,
+    this.pauseBetween,
     this.mode = TextScrollerMode.endless,
     this.velocity = const Velocity(pixelsPerSecond: Offset(80, 0)),
   }) : super(key: key);
@@ -19,6 +20,7 @@ class TextScroller extends StatefulWidget {
   final TextStyle? style;
   final int? numberOfReps;
   final Duration? delayBefore;
+  final Duration? pauseBetween;
   final TextScrollerMode mode;
   final Velocity velocity;
 
@@ -48,6 +50,10 @@ class _TextScrollerState extends State<TextScroller> {
 
   @override
   Widget build(BuildContext context) {
+    assert(
+        widget.pauseBetween == null || widget.mode == TextScrollerMode.bouncing,
+        'pauseBetween is only available for TextScrollerMode.bouncing mode');
+
     return SingleChildScrollView(
       controller: _scrollController,
       scrollDirection: Axis.horizontal,
@@ -145,6 +151,10 @@ class _TextScrollerState extends State<TextScroller> {
       duration: duration,
       curve: Curves.linear,
     );
+    if (!mounted) return;
+    if (widget.pauseBetween != null) {
+      await Future<dynamic>.delayed(widget.pauseBetween!);
+    }
   }
 
   Future<void> _delayBefore() async {

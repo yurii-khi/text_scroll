@@ -41,6 +41,7 @@ class _MyHomePageState extends State<MyHomePage> {
             TextScroller(
               'This is the sample text for Flutter TextScroller plugin. ',
               velocity: Velocity(pixelsPerSecond: Offset(100, 0)),
+              delayBefore: Duration(milliseconds: 50),
             ),
             TextScroller(
               'This is the sample text for Flutter TextScroller plugin, '
@@ -48,6 +49,7 @@ class _MyHomePageState extends State<MyHomePage> {
               numberOfReps: 2,
               style: TextStyle(decoration: TextDecoration.underline),
               mode: TextScrollerMode.bouncing,
+              pauseBetween: Duration(milliseconds: 500),
             ),
             TextScroller('This is the sample text'),
           ],
