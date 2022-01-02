@@ -40,6 +40,7 @@ class _MyHomePageState extends State<MyHomePage> {
           children: const <Widget>[
             TextScroller(
               'This is the sample text for Flutter TextScroller plugin. ',
+              velocity: Velocity(pixelsPerSecond: Offset(100, 0)),
             ),
             TextScroller(
               'This is the sample text for Flutter TextScroller plugin, '

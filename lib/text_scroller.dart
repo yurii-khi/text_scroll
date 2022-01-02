@@ -12,6 +12,7 @@ class TextScroller extends StatefulWidget {
     this.numberOfReps,
     this.delayBefore,
     this.mode = TextScrollerMode.endless,
+    this.velocity = const Velocity(pixelsPerSecond: Offset(80, 0)),
   }) : super(key: key);
 
   final String text;
@@ -19,6 +20,7 @@ class TextScroller extends StatefulWidget {
   final int? numberOfReps;
   final Duration? delayBefore;
   final TextScrollerMode mode;
+  final Velocity velocity;
 
   @override
   State<TextScroller> createState() => _TextScrollerState();
@@ -107,13 +109,17 @@ class _TextScrollerState extends State<TextScroller> {
       return;
     }
     setState(() => _endlessText ??= widget.text + ' ' + widget.text);
+    await Future<dynamic>.delayed(Duration.zero);
 
     final double singleRoundExtent =
         (position.maxScrollExtent + position.viewportDimension) / 2;
+    final Duration duration = _getDuration(singleRoundExtent);
+    if (duration == Duration.zero) return;
 
+    if (!mounted) return;
     await _scrollController.animateTo(
       singleRoundExtent,
-      duration: const Duration(seconds: 5),
+      duration: duration,
       curve: Curves.linear,
     );
     if (!mounted) return;
@@ -121,16 +127,22 @@ class _TextScrollerState extends State<TextScroller> {
   }
 
   Future<void> _animateBouncing() async {
+    final double maxExtent = _scrollController.position.maxScrollExtent;
+    final double minExtent = _scrollController.position.minScrollExtent;
+    final double extent = maxExtent - minExtent;
+    final Duration duration = _getDuration(extent);
+    if (duration == Duration.zero) return;
+
     if (!mounted) return;
     await _scrollController.animateTo(
-      _scrollController.position.maxScrollExtent,
-      duration: const Duration(seconds: 2),
+      maxExtent,
+      duration: duration,
       curve: Curves.linear,
     );
     if (!mounted) return;
     await _scrollController.animateTo(
-      _scrollController.position.minScrollExtent,
-      duration: const Duration(seconds: 2),
+      minExtent,
+      duration: duration,
       curve: Curves.linear,
     );
   }
@@ -140,6 +152,13 @@ class _TextScrollerState extends State<TextScroller> {
     if (delayBefore == null) return;
 
     await Future<dynamic>.delayed(delayBefore);
+  }
+
+  Duration _getDuration(double extent) {
+    final int milliseconds =
+        (extent * 1000 / widget.velocity.pixelsPerSecond.dx).round();
+
+    return Duration(milliseconds: milliseconds);
   }
 }
 
