@@ -43,6 +43,13 @@ class _TextScrollerState extends State<TextScroller> {
   }
 
   @override
+  void didUpdateWidget(covariant TextScroller oldWidget) {
+    _onUpdate(oldWidget);
+
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
   void dispose() {
     _timer?.cancel();
     super.dispose();
@@ -172,6 +179,13 @@ class _TextScrollerState extends State<TextScroller> {
         (extent * 1000 / widget.velocity.pixelsPerSecond.dx).round();
 
     return Duration(milliseconds: milliseconds);
+  }
+
+  void _onUpdate(TextScroller oldWidget) {
+    if (widget.text != oldWidget.text && _endlessText != null) {
+      setState(() => _endlessText = null);
+      _scrollController.jumpTo(_scrollController.position.minScrollExtent);
+    }
   }
 }
 

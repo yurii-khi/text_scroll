@@ -37,13 +37,13 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const <Widget>[
-            TextScroller(
+          children: <Widget>[
+            const TextScroller(
               'This is the sample text for Flutter TextScroller plugin. ',
               velocity: Velocity(pixelsPerSecond: Offset(100, 0)),
               delayBefore: Duration(milliseconds: 50),
             ),
-            TextScroller(
+            const TextScroller(
               'This is the sample text for Flutter TextScroller plugin, '
               'showing \'numberOfReps\' parameter (2 reps).',
               numberOfReps: 2,
@@ -51,7 +51,15 @@ class _MyHomePageState extends State<MyHomePage> {
               mode: TextScrollerMode.bouncing,
               pauseBetween: Duration(milliseconds: 500),
             ),
-            TextScroller('This is the sample text'),
+            const TextScroller('This is the sample text'),
+            FutureBuilder<dynamic>(
+                future: Future<dynamic>.delayed(const Duration(seconds: 2)),
+                builder: (context, snapshot) {
+                  return TextScroller(snapshot.connectionState ==
+                          ConnectionState.waiting
+                      ? 'This is the sample text for Flutter TextScroller plugin.'
+                      : 'Short text');
+                }),
           ],
         ),
       ),
