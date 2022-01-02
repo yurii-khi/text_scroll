@@ -114,8 +114,11 @@ class _TextScrollerState extends State<TextScroller> {
       if (_endlessText != null) setState(() => _endlessText = null);
       return;
     }
-    setState(() => _endlessText ??= widget.text + ' ' + widget.text);
-    await Future<dynamic>.delayed(Duration.zero);
+
+    if (_endlessText == null) {
+      setState(() => _endlessText = widget.text + ' ' + widget.text);
+      return;
+    }
 
     final double singleRoundExtent =
         (position.maxScrollExtent + position.viewportDimension) / 2;
