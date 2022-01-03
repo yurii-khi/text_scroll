@@ -53,7 +53,7 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.99"
-  text_scroller:
+  text_scroll:
     dependency: "direct main"
     description:
       path: ".."

@@ -1,11 +1,11 @@
-library text_scroller;
+library text_scroll;
 
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-class TextScroller extends StatefulWidget {
-  const TextScroller(
+class TextScroll extends StatefulWidget {
+  const TextScroll(
     this.text, {
     Key? key,
     this.style,
@@ -13,7 +13,7 @@ class TextScroller extends StatefulWidget {
     this.numberOfReps,
     this.delayBefore,
     this.pauseBetween,
-    this.mode = TextScrollerMode.endless,
+    this.mode = TextScrollMode.endless,
     this.velocity = const Velocity(pixelsPerSecond: Offset(80, 0)),
   }) : super(key: key);
 
@@ -23,14 +23,14 @@ class TextScroller extends StatefulWidget {
   final int? numberOfReps;
   final Duration? delayBefore;
   final Duration? pauseBetween;
-  final TextScrollerMode mode;
+  final TextScrollMode mode;
   final Velocity velocity;
 
   @override
-  State<TextScroller> createState() => _TextScrollerState();
+  State<TextScroll> createState() => _TextScrollState();
 }
 
-class _TextScrollerState extends State<TextScroller> {
+class _TextScrollState extends State<TextScroll> {
   final _scrollController = ScrollController();
   String? _endlessText;
   Timer? _timer;
@@ -45,7 +45,7 @@ class _TextScrollerState extends State<TextScroller> {
   }
 
   @override
-  void didUpdateWidget(covariant TextScroller oldWidget) {
+  void didUpdateWidget(covariant TextScroll oldWidget) {
     _onUpdate(oldWidget);
 
     super.didUpdateWidget(oldWidget);
@@ -60,8 +60,8 @@ class _TextScrollerState extends State<TextScroller> {
   @override
   Widget build(BuildContext context) {
     assert(
-        widget.pauseBetween == null || widget.mode == TextScrollerMode.bouncing,
-        'pauseBetween is only available for TextScrollerMode.bouncing mode');
+        widget.pauseBetween == null || widget.mode == TextScrollMode.bouncing,
+        'pauseBetween is only available for TextScrollMode.bouncing mode');
 
     return Flexible(
       child: SingleChildScrollView(
@@ -102,7 +102,7 @@ class _TextScrollerState extends State<TextScroller> {
       _counter++;
 
       switch (widget.mode) {
-        case TextScrollerMode.bouncing:
+        case TextScrollMode.bouncing:
           {
             await _animateBouncing();
             break;
@@ -186,7 +186,7 @@ class _TextScrollerState extends State<TextScroller> {
     return Duration(milliseconds: milliseconds);
   }
 
-  void _onUpdate(TextScroller oldWidget) {
+  void _onUpdate(TextScroll oldWidget) {
     if (widget.text != oldWidget.text && _endlessText != null) {
       setState(() => _endlessText = null);
       _scrollController.jumpTo(_scrollController.position.minScrollExtent);
@@ -194,7 +194,7 @@ class _TextScrollerState extends State<TextScroller> {
   }
 }
 
-enum TextScrollerMode {
+enum TextScrollMode {
   bouncing,
   endless,
 }

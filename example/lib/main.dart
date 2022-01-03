@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:text_scroller/text_scroller.dart';
+import 'package:text_scroll/text_scroll.dart';
 
 void main() {
   runApp(const MyApp());
@@ -10,11 +10,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter TextScroller Demo',
+      title: 'Flutter TextScroll Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter TextScroller'),
+      home: const MyHomePage(title: 'Flutter TextScroll'),
     );
   }
 }
@@ -35,57 +35,41 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Row(
-              children: const [
-                TextScroller(
-                  'This is the sample text for Flutter TextScroller plugin. ',
-                  velocity: Velocity(pixelsPerSecond: Offset(150, 0)),
-                  mode: TextScrollerMode.bouncing,
-                ),
-                SizedBox(width: 4),
-                Expanded(
-                  child: TextScroller(
-                    'This is the sample text for Flutter TextScroller plugin. ',
-                    velocity: Velocity(pixelsPerSecond: Offset(50, 0)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 400),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Row(
+                children: const [
+                  TextScroll(
+                    'This is the sample text for Flutter TextScroll plugin. ',
+                    velocity: Velocity(pixelsPerSecond: Offset(150, 0)),
+                    mode: TextScrollMode.bouncing,
                   ),
-                ),
-              ],
-            ),
-            const TextScroller(
-              'This is the sample text for Flutter TextScroller plugin. ',
-              textAlign: TextAlign.right,
-            ),
-            const TextScroller(
-              'This is the sample text for Flutter TextScroller plugin, '
-              'showing \'numberOfReps\' parameter (2 reps).',
-              numberOfReps: 2,
-              style: TextStyle(decoration: TextDecoration.underline),
-              mode: TextScrollerMode.bouncing,
-              pauseBetween: Duration(milliseconds: 500),
-            ),
-            const TextScroller('This is the sample text'),
-            FutureBuilder<dynamic>(
-                future: Future<dynamic>.delayed(const Duration(seconds: 2)),
-                builder: (context, snapshot) {
-                  return TextScroller(snapshot.connectionState ==
-                          ConnectionState.waiting
-                      ? 'This is the sample text for Flutter TextScroller plugin.'
-                      : 'Short text');
-                }),
-            const TextScroller('This is the sample text'),
-            FutureBuilder<dynamic>(
-                future:
-                    Future<dynamic>.delayed(const Duration(milliseconds: 1500)),
-                builder: (context, snapshot) {
-                  return snapshot.connectionState == ConnectionState.waiting
-                      ? const TextScroller(
-                          'This is the sample text for Flutter TextScroller plugin.')
-                      : const SizedBox();
-                }),
-          ],
+                  SizedBox(width: 4),
+                  Expanded(
+                    child: TextScroll(
+                      'This is the sample text for Flutter TextScroll widget.',
+                      velocity: Velocity(pixelsPerSecond: Offset(50, 0)),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              const TextScroll(
+                'This is the sample text for Flutter TextScroll widget. '
+                'This is the sample text for Flutter TextScroll widget.',
+                mode: TextScrollMode.bouncing,
+                numberOfReps: 200,
+                delayBefore: Duration(milliseconds: 2000),
+                pauseBetween: Duration(milliseconds: 1000),
+                velocity: Velocity(pixelsPerSecond: Offset(100, 0)),
+                style: TextStyle(decoration: TextDecoration.underline),
+                textAlign: TextAlign.right,
+              ),
+            ],
+          ),
         ),
       ),
     );
