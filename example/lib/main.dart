@@ -56,8 +56,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             const TextScroller(
               'This is the sample text for Flutter TextScroller plugin. ',
-              velocity: Velocity(pixelsPerSecond: Offset(100, 0)),
-              delayBefore: Duration(milliseconds: 50),
+              textAlign: TextAlign.right,
             ),
             const TextScroller(
               'This is the sample text for Flutter TextScroller plugin, '

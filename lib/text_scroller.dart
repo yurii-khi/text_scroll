@@ -9,6 +9,7 @@ class TextScroller extends StatefulWidget {
     this.text, {
     Key? key,
     this.style,
+    this.textAlign,
     this.numberOfReps,
     this.delayBefore,
     this.pauseBetween,
@@ -17,6 +18,7 @@ class TextScroller extends StatefulWidget {
   }) : super(key: key);
 
   final String text;
+  final TextAlign? textAlign;
   final TextStyle? style;
   final int? numberOfReps;
   final Duration? delayBefore;
@@ -68,6 +70,7 @@ class _TextScrollerState extends State<TextScroller> {
         child: Text(
           _endlessText ?? widget.text,
           style: widget.style,
+          textAlign: widget.textAlign,
         ),
       ),
     );
