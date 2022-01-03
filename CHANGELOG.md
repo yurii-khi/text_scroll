@@ -1,3 +1,10 @@
 ## 0.0.1
 
-* TODO: Describe initial release.
+### Initial release
+* endless and bouncing auto-scrolling
+* velocity
+* delay
+* pause
+* max repetitions number
+* style
+* text alignment
