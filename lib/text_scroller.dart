@@ -61,12 +61,14 @@ class _TextScrollerState extends State<TextScroller> {
         widget.pauseBetween == null || widget.mode == TextScrollerMode.bouncing,
         'pauseBetween is only available for TextScrollerMode.bouncing mode');
 
-    return SingleChildScrollView(
-      controller: _scrollController,
-      scrollDirection: Axis.horizontal,
-      child: Text(
-        _endlessText ?? widget.text,
-        style: widget.style,
+    return Flexible(
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        scrollDirection: Axis.horizontal,
+        child: Text(
+          _endlessText ?? widget.text,
+          style: widget.style,
+        ),
       ),
     );
   }

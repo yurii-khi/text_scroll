@@ -38,6 +38,22 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            Row(
+              children: const [
+                TextScroller(
+                  'This is the sample text for Flutter TextScroller plugin. ',
+                  velocity: Velocity(pixelsPerSecond: Offset(150, 0)),
+                  mode: TextScrollerMode.bouncing,
+                ),
+                SizedBox(width: 4),
+                Expanded(
+                  child: TextScroller(
+                    'This is the sample text for Flutter TextScroller plugin. ',
+                    velocity: Velocity(pixelsPerSecond: Offset(50, 0)),
+                  ),
+                ),
+              ],
+            ),
             const TextScroller(
               'This is the sample text for Flutter TextScroller plugin. ',
               velocity: Velocity(pixelsPerSecond: Offset(100, 0)),
