@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:text_scroller/text_scroller.dart';
+import 'package:text_scroll/text_scroll.dart';
 
 void main() {
   runApp(const MyApp());
@@ -10,11 +10,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter TextScroller Demo',
+      title: 'Flutter TextScroll Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter TextScroller'),
+      home: const MyHomePage(title: 'Flutter TextScroll'),
     );
   }
 }
@@ -42,25 +42,25 @@ class _MyHomePageState extends State<MyHomePage> {
             children: <Widget>[
               Row(
                 children: const [
-                  TextScroller(
-                    'This is the sample text for Flutter TextScroller plugin. ',
+                  TextScroll(
+                    'This is the sample text for Flutter TextScroll plugin. ',
                     velocity: Velocity(pixelsPerSecond: Offset(150, 0)),
-                    mode: TextScrollerMode.bouncing,
+                    mode: TextScrollMode.bouncing,
                   ),
                   SizedBox(width: 4),
                   Expanded(
-                    child: TextScroller(
-                      'This is the sample text for Flutter TextScroller widget.',
+                    child: TextScroll(
+                      'This is the sample text for Flutter TextScroll widget.',
                       velocity: Velocity(pixelsPerSecond: Offset(50, 0)),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 20),
-              const TextScroller(
-                'This is the sample text for Flutter TextScroller widget. '
-                'This is the sample text for Flutter TextScroller widget.',
-                mode: TextScrollerMode.bouncing,
+              const TextScroll(
+                'This is the sample text for Flutter TextScroll widget. '
+                'This is the sample text for Flutter TextScroll widget.',
+                mode: TextScrollMode.bouncing,
                 numberOfReps: 200,
                 delayBefore: Duration(milliseconds: 2000),
                 pauseBetween: Duration(milliseconds: 1000),

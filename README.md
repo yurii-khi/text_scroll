@@ -1,6 +1,6 @@
-# text_scroller
+# text_scroll
 
-`TextScroller` Flutter widget adds text auto-scrolling functionality (marquee text).
+`TextScroll` Flutter widget adds text auto-scrolling functionality (marquee text).
 
 ## Features
 
@@ -12,22 +12,22 @@
 
 ## Getting started
 
-To use this plugin, add text_scroller as a dependency in your pubspec.yaml file.
+To use this plugin, add text_scroll as a dependency in your pubspec.yaml file.
 
 ## Usage
 
 Minimal example:
 
 ```dart
-    TextScroller('This is the sample text for Flutter TextScroller widget. ')
+    TextScroll('This is the sample text for Flutter TextScroll widget. ')
 ```
 
 Custom settings:
 
 ```dart
-    TextScroller(
-        'This is the sample text for Flutter TextScroller widget. ',
-        mode: TextScrollerMode.bouncing,
+    TextScroll(
+        'This is the sample text for Flutter TextScroll widget. ',
+        mode: TextScrollMode.bouncing,
         velocity: Velocity(pixelsPerSecond: Offset(150, 0)),
         delayBefore: Duration(milliseconds: 500),
         numberOfReps: 5,

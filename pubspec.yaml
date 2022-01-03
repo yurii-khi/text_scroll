@@ -1,7 +1,7 @@
-name: text_scroller
-description: TextScroller Flutter widget adds text auto-scrolling functionality (marquee text).
+name: text_scroll
+description: TextScroll Flutter widget adds text auto-scrolling functionality (marquee text).
 version: 0.0.1
-repository: https://github.com/yurii-khi/text_scroller
+repository: https://github.com/yurii-khi/text_scroll
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
