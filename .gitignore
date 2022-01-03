@@ -74,4 +74,3 @@ build/
 !**/ios/**/default.pbxuser
 !**/ios/**/default.perspectivev3
 .vscode/settings.json
-pubspec.lock
