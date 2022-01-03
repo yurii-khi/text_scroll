@@ -60,6 +60,16 @@ class _MyHomePageState extends State<MyHomePage> {
                       ? 'This is the sample text for Flutter TextScroller plugin.'
                       : 'Short text');
                 }),
+            const TextScroller('This is the sample text'),
+            FutureBuilder<dynamic>(
+                future:
+                    Future<dynamic>.delayed(const Duration(milliseconds: 1500)),
+                builder: (context, snapshot) {
+                  return snapshot.connectionState == ConnectionState.waiting
+                      ? const TextScroller(
+                          'This is the sample text for Flutter TextScroller plugin.')
+                      : const SizedBox();
+                }),
           ],
         ),
       ),
