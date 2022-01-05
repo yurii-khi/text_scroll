@@ -44,16 +44,27 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: const [
                   Flexible(
                     child: TextScroll(
-                      'This is the sample text for Flutter TextScroll plugin. ',
-                      velocity: Velocity(pixelsPerSecond: Offset(150, 0)),
-                      mode: TextScrollMode.bouncing,
+                      'This is the sample text for Flutter TextScroll widget. ',
+                      velocity: Velocity(pixelsPerSecond: Offset(50, 0)),
                     ),
                   ),
                   SizedBox(width: 4),
                   Expanded(
+                    child: SizedBox(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: const [
+                  Expanded(flex: 2, child: Text('Static text')),
+                  Flexible(
+                    flex: 1,
                     child: TextScroll(
-                      'This is the sample text for Flutter TextScroll widget.',
+                      'This is the sample text for Flutter TextScroll widget. ',
                       velocity: Velocity(pixelsPerSecond: Offset(50, 0)),
+                      pauseBetween: Duration(milliseconds: 1000),
+                      mode: TextScrollMode.bouncing,
                     ),
                   ),
                 ],
