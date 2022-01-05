@@ -42,10 +42,12 @@ class _MyHomePageState extends State<MyHomePage> {
             children: <Widget>[
               Row(
                 children: const [
-                  TextScroll(
-                    'This is the sample text for Flutter TextScroll plugin. ',
-                    velocity: Velocity(pixelsPerSecond: Offset(150, 0)),
-                    mode: TextScrollMode.bouncing,
+                  Flexible(
+                    child: TextScroll(
+                      'This is the sample text for Flutter TextScroll plugin. ',
+                      velocity: Velocity(pixelsPerSecond: Offset(150, 0)),
+                      mode: TextScrollMode.bouncing,
+                    ),
                   ),
                   SizedBox(width: 4),
                   Expanded(
