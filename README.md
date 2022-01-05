@@ -12,7 +12,10 @@
 
 ## Getting started
 
-To use this plugin, add text_scroll as a dependency in your pubspec.yaml file.
+To use this package, add text_scroll as a dependency in your pubspec.yaml file.
+
+
+![demo](https://user-images.githubusercontent.com/29194552/148179957-cc4e8c3e-e6d0-4cc3-90e4-e002505bf075.gif)
 
 ## Usage
 
