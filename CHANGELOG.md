@@ -8,3 +8,8 @@
 * max repetitions number
 * style
 * text alignment
+
+## 0.0.2
+* fix flex behavior
+* update docs
+

@@ -4,6 +4,23 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+/// TextScroll widget automatically scrolls provided [text] according
+/// to custom settings, in order to achieve 'marquee' text effect.
+///
+/// ### Example:
+///
+/// ```dart
+/// TextScroll(
+///     'This is the sample text for Flutter TextScroll widget. ',
+///     mode: TextScrollMode.bouncing,
+///     velocity: Velocity(pixelsPerSecond: Offset(150, 0)),
+///     delayBefore: Duration(milliseconds: 500),
+///     numberOfReps: 5,
+///     pauseBetween: Duration(milliseconds: 50),
+///     style: TextStyle(color: Colors.green),
+///     textAlign: TextAlign.right,
+/// )
+/// ```
 class TextScroll extends StatefulWidget {
   const TextScroll(
     this.text, {
@@ -17,13 +34,118 @@ class TextScroll extends StatefulWidget {
     this.velocity = const Velocity(pixelsPerSecond: Offset(80, 0)),
   }) : super(key: key);
 
+  /// The text string, that would be scrolled.
+  /// In case text does fit into allocated space, it wouldn't be scrolled
+  /// and would be shown as is.
+  ///
+  /// ### Example:
+  ///
+  /// ```dart
+  /// TextScroll('This is the sample text for Flutter TextScroll widget.')
+  /// ```
   final String text;
+
+  /// Provides [TextAlign] alignment if text string is not long enough to be scrolled.
+  ///
+  /// ### Example:
+  ///
+  /// ```dart
+  /// TextScroll(
+  ///   'Short string',
+  ///   textAlign: TextAlign.right,
+  /// )
+  /// ```
   final TextAlign? textAlign;
+
+  /// Allows to apply custom [TextStyle] to [text].
+  ///
+  /// `null` by default.
+  ///
+  /// ### Example:
+  ///
+  /// ```dart
+  /// TextScroll(
+  ///   'Styled text',
+  ///   style: TextStyle(
+  ///     color: Colors.red,
+  ///   ),
+  /// )
+  /// ```
   final TextStyle? style;
+
+  /// Limits number of scroll animation rounds.
+  ///
+  /// Default is [infinity].
+  ///
+  /// ### Example:
+  ///
+  /// ```dart
+  /// TextScroll(
+  ///   'Limit scroll rounds to 10',
+  ///   numberOfReps: 10,
+  /// )
+  /// ```
   final int? numberOfReps;
+
+  /// Delay before first animation round.
+  ///
+  /// Default is [Duration.zero].
+  ///
+  /// ### Example:
+  ///
+  /// ```dart
+  /// TextScroll(
+  ///   'Start animation after 1 sec delay',
+  ///   delayBefore: Duration(seconds: 1),
+  /// )
+  /// ```
   final Duration? delayBefore;
+
+  /// Determines pause interval between animation rounds.
+  ///
+  /// Only allowed if [mode] is set to [TextScrollMode.bouncing].
+  ///
+  /// Default is [Duration.zero].
+  ///
+  /// ### Example:
+  ///
+  /// ```dart
+  /// TextScroll(
+  ///   'Pause animation between rounds',
+  ///   mode: TextScrollMode.bouncing,
+  ///   pauseBetween: Duration(milliseconds: 300),
+  /// )
+  /// ```
   final Duration? pauseBetween;
+
+  /// Sets one of two different types of scrolling behavior.
+  ///
+  /// [TextScrollMode.endless] - default, scrolls text in one direction endlessly.
+  ///
+  /// [TextScrollMode.bouncing] - when [text] string is scrolled to its end,
+  /// starts animation to opposite direction.
+  ///
+  /// ### Example:
+  ///
+  /// ```dart
+  /// TextScroll(
+  ///   'Animate text string back and forth',
+  ///   mode: TextScrollMode.bouncing,
+  /// )
+  /// ```
   final TextScrollMode mode;
+
+  /// Allows to customize animation speed.
+  ///
+  /// Default is `Velocity(pixelsPerSecond: Offset(80, 0))`
+  ///
+  /// ### Example:
+  ///
+  /// ```dart
+  /// TextScroll(
+  ///   'Animate text at 200px per second',
+  ///   velocity: Velocity(pixelsPerSecond: Offset(200, 0)),
+  /// )
   final Velocity velocity;
 
   @override
@@ -63,15 +185,13 @@ class _TextScrollState extends State<TextScroll> {
         widget.pauseBetween == null || widget.mode == TextScrollMode.bouncing,
         'pauseBetween is only available for TextScrollMode.bouncing mode');
 
-    return Flexible(
-      child: SingleChildScrollView(
-        controller: _scrollController,
-        scrollDirection: Axis.horizontal,
-        child: Text(
-          _endlessText ?? widget.text,
-          style: widget.style,
-          textAlign: widget.textAlign,
-        ),
+    return SingleChildScrollView(
+      controller: _scrollController,
+      scrollDirection: Axis.horizontal,
+      child: Text(
+        _endlessText ?? widget.text,
+        style: widget.style,
+        textAlign: widget.textAlign,
       ),
     );
   }
@@ -194,6 +314,12 @@ class _TextScrollState extends State<TextScroll> {
   }
 }
 
+/// Animation types for [TextScroll] widget.
+///
+/// [endless] - scrolls text in one direction endlessly.
+///
+/// [bouncing] - when text is scrolled to its end,
+/// starts animation to opposite direction.
 enum TextScrollMode {
   bouncing,
   endless,
