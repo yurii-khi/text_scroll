@@ -2,6 +2,8 @@
 
 `TextScroll` Flutter widget adds text auto-scrolling functionality (marquee text).
 
+![demo](https://user-images.githubusercontent.com/29194552/148517560-6f41a081-9b34-4975-9052-a2855d46b555.gif)
+
 ## Features
 
  - `endless` and `bouncing` modes
@@ -13,9 +15,6 @@
 ## Getting started
 
 To use this package, add text_scroll as a dependency in your pubspec.yaml file.
-
-
-![demo](https://user-images.githubusercontent.com/29194552/148179957-cc4e8c3e-e6d0-4cc3-90e4-e002505bf075.gif)
 
 ## Usage
 
@@ -37,5 +36,12 @@ Custom settings:
         pauseBetween: Duration(milliseconds: 50),
         style: TextStyle(color: Colors.green),
         textAlign: TextAlign.right,
+        selectable: true,
     )
 ```
+
+## See also
+
+ - [github repo](https://github.com/yurii-khi/text_scroll)
+ - [pub.dev package](https://pub.dev/packages/text_scroll)
+ - [api reference](https://pub.dev/documentation/text_scroll/latest/text_scroll/TextScroll-class.html)

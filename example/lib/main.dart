@@ -80,6 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 velocity: Velocity(pixelsPerSecond: Offset(100, 0)),
                 style: TextStyle(decoration: TextDecoration.underline),
                 textAlign: TextAlign.right,
+                selectable: true,
               ),
             ],
           ),

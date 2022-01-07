@@ -13,3 +13,7 @@
 * fix flex behavior
 * update docs
 
+## 0.0.3
+* update docs
+* add `selectable` property
+

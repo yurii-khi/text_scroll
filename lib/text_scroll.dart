@@ -19,6 +19,7 @@ import 'package:flutter/material.dart';
 ///     pauseBetween: Duration(milliseconds: 50),
 ///     style: TextStyle(color: Colors.green),
 ///     textAlign: TextAlign.right,
+///     selectable: true,
 /// )
 /// ```
 class TextScroll extends StatefulWidget {
@@ -32,6 +33,7 @@ class TextScroll extends StatefulWidget {
     this.pauseBetween,
     this.mode = TextScrollMode.endless,
     this.velocity = const Velocity(pixelsPerSecond: Offset(80, 0)),
+    this.selectable = false,
   }) : super(key: key);
 
   /// The text string, that would be scrolled.
@@ -148,6 +150,20 @@ class TextScroll extends StatefulWidget {
   /// )
   final Velocity velocity;
 
+  /// Allows users to select provided [text], copy it to clipboard etc.
+  ///
+  /// Default is `false`.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// TextScroll(
+  ///   'Selectable text',
+  ///   selectable: true,
+  /// )
+  /// ```
+  final bool selectable;
+
   @override
   State<TextScroll> createState() => _TextScrollState();
 }
@@ -188,11 +204,17 @@ class _TextScrollState extends State<TextScroll> {
     return SingleChildScrollView(
       controller: _scrollController,
       scrollDirection: Axis.horizontal,
-      child: Text(
-        _endlessText ?? widget.text,
-        style: widget.style,
-        textAlign: widget.textAlign,
-      ),
+      child: widget.selectable
+          ? SelectableText(
+              _endlessText ?? widget.text,
+              style: widget.style,
+              textAlign: widget.textAlign,
+            )
+          : Text(
+              _endlessText ?? widget.text,
+              style: widget.style,
+              textAlign: widget.textAlign,
+            ),
     );
   }
 
