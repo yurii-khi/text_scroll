@@ -36,6 +36,7 @@ Custom settings:
         pauseBetween: Duration(milliseconds: 50),
         style: TextStyle(color: Colors.green),
         textAlign: TextAlign.right,
+        selectable: true,
     )
 ```
 
