@@ -82,6 +82,11 @@ class _MyHomePageState extends State<MyHomePage> {
                 textAlign: TextAlign.right,
                 selectable: true,
               ),
+              const SizedBox(height: 20),
+              const TextScroll(
+                'Hey! I\'m a RTL text, check me out. Hey! I\'m a RTL text, check me out. Hey! I\'m a RTL text, check me out. ',
+                textDirection: TextDirection.rtl,
+              )
             ],
           ),
         ),
