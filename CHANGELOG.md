@@ -17,3 +17,6 @@
 * update docs
 * add `selectable` property
 
+## 0.0.4
+* introduce `textDirection` property
+
