@@ -28,6 +28,7 @@ class TextScroll extends StatefulWidget {
     Key? key,
     this.style,
     this.textAlign,
+    this.textDirection = TextDirection.ltr,
     this.numberOfReps,
     this.delayBefore,
     this.pauseBetween,
@@ -58,6 +59,21 @@ class TextScroll extends StatefulWidget {
   /// )
   /// ```
   final TextAlign? textAlign;
+
+  /// Provides [TextDirection] - a direction in which text flows.
+  /// Default is [TextDirection.ltr].
+  /// Default scrolling direction would be opposite to [textDirection],
+  /// e.g. for [TextDirection.rtl] scrolling would be from left to right
+  ///
+  /// ### Example:
+  ///
+  /// ```dart
+  /// TextScroll(
+  ///   'Hey! I\'m a RTL text, check me out. Hey! I\'m a RTL text, check me out. Hey! I\'m a RTL text, check me out. ',
+  ///   textDirection: TextDirection.rtl,
+  /// )
+  /// ```
+  final TextDirection textDirection;
 
   /// Allows to apply custom [TextStyle] to [text].
   ///
@@ -201,20 +217,23 @@ class _TextScrollState extends State<TextScroll> {
         widget.pauseBetween == null || widget.mode == TextScrollMode.bouncing,
         'pauseBetween is only available for TextScrollMode.bouncing mode');
 
-    return SingleChildScrollView(
-      controller: _scrollController,
-      scrollDirection: Axis.horizontal,
-      child: widget.selectable
-          ? SelectableText(
-              _endlessText ?? widget.text,
-              style: widget.style,
-              textAlign: widget.textAlign,
-            )
-          : Text(
-              _endlessText ?? widget.text,
-              style: widget.style,
-              textAlign: widget.textAlign,
-            ),
+    return Directionality(
+      textDirection: widget.textDirection,
+      child: SingleChildScrollView(
+        controller: _scrollController,
+        scrollDirection: Axis.horizontal,
+        child: widget.selectable
+            ? SelectableText(
+                _endlessText ?? widget.text,
+                style: widget.style,
+                textAlign: widget.textAlign,
+              )
+            : Text(
+                _endlessText ?? widget.text,
+                style: widget.style,
+                textAlign: widget.textAlign,
+              ),
+      ),
     );
   }
 
