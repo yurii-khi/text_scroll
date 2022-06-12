@@ -20,3 +20,6 @@
 ## 0.0.4
 * introduce `textDirection` property
 
+## 0.0.5
+* tidy up static analysis warnings after Flutter upgrade to 3.0.2
+
