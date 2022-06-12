@@ -195,7 +195,7 @@ class _TextScrollState extends State<TextScroll> {
   void initState() {
     super.initState();
 
-    WidgetsBinding.instance?.addPostFrameCallback(_initScroller);
+    WidgetsBinding.instance.addPostFrameCallback(_initScroller);
   }
 
   @override
