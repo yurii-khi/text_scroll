@@ -244,7 +244,7 @@ class _TextScrollState extends State<TextScroll> {
     await _delayBefore();
 
     _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
-      if (!mounted) {
+      if (!_available) {
         timer.cancel();
         return;
       }
@@ -282,7 +282,7 @@ class _TextScrollState extends State<TextScroll> {
   }
 
   Future<void> _animateEndless() async {
-    if (!mounted) return;
+    if (!_available) return;
 
     final ScrollPosition position = _scrollController.position;
     final bool needsScrolling = position.maxScrollExtent > 0;
@@ -301,13 +301,13 @@ class _TextScrollState extends State<TextScroll> {
     final Duration duration = _getDuration(singleRoundExtent);
     if (duration == Duration.zero) return;
 
-    if (!mounted) return;
+    if (!_available) return;
     await _scrollController.animateTo(
       singleRoundExtent,
       duration: duration,
       curve: Curves.linear,
     );
-    if (!mounted) return;
+    if (!_available) return;
     _scrollController.jumpTo(position.minScrollExtent);
   }
 
@@ -318,19 +318,19 @@ class _TextScrollState extends State<TextScroll> {
     final Duration duration = _getDuration(extent);
     if (duration == Duration.zero) return;
 
-    if (!mounted) return;
+    if (!_available) return;
     await _scrollController.animateTo(
       maxExtent,
       duration: duration,
       curve: Curves.linear,
     );
-    if (!mounted) return;
+    if (!_available) return;
     await _scrollController.animateTo(
       minExtent,
       duration: duration,
       curve: Curves.linear,
     );
-    if (!mounted) return;
+    if (!_available) return;
     if (widget.pauseBetween != null) {
       await Future<dynamic>.delayed(widget.pauseBetween!);
     }
@@ -356,6 +356,8 @@ class _TextScrollState extends State<TextScroll> {
       _scrollController.jumpTo(_scrollController.position.minScrollExtent);
     }
   }
+
+  bool get _available => mounted && _scrollController.hasClients;
 }
 
 /// Animation types for [TextScroll] widget.
