@@ -35,6 +35,7 @@ class TextScroll extends StatefulWidget {
     this.mode = TextScrollMode.endless,
     this.velocity = const Velocity(pixelsPerSecond: Offset(80, 0)),
     this.selectable = false,
+    this.intervalSpaces,
   }) : super(key: key);
 
   /// The text string, that would be scrolled.
@@ -180,6 +181,21 @@ class TextScroll extends StatefulWidget {
   /// ```
   final bool selectable;
 
+  /// Adds blank spaces between two nearby text sentences
+  /// in case of [TextScrollMode.endless]
+  ///
+  /// Default is `1`.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// TextScroll(
+  ///   'This is the sample text for Flutter TextScroll widget. ',
+  ///   blankSpaces: 10,
+  /// )
+  /// ```
+  final int? intervalSpaces;
+
   @override
   State<TextScroll> createState() => _TextScrollState();
 }
@@ -187,6 +203,7 @@ class TextScroll extends StatefulWidget {
 class _TextScrollState extends State<TextScroll> {
   final _scrollController = ScrollController();
   String? _endlessText;
+  double? _originalTextWidth;
   Timer? _timer;
   bool _running = false;
   int _counter = 0;
@@ -218,7 +235,10 @@ class _TextScrollState extends State<TextScroll> {
   Widget build(BuildContext context) {
     assert(
         widget.pauseBetween == null || widget.mode == TextScrollMode.bouncing,
-        'pauseBetween is only available for TextScrollMode.bouncing mode');
+        'pauseBetween is only available in TextScrollMode.bouncing mode');
+    assert(
+        widget.intervalSpaces == null || widget.mode == TextScrollMode.endless,
+        'intervalSpaces is only available in TextScrollMode.endless mode');
 
     return Directionality(
       textDirection: widget.textDirection,
@@ -295,13 +315,20 @@ class _TextScrollState extends State<TextScroll> {
       return;
     }
 
-    if (_endlessText == null) {
-      setState(() => _endlessText = widget.text + ' ' + widget.text);
+    if (_endlessText == null || _originalTextWidth == null) {
+      setState(() {
+        _originalTextWidth =
+            position.maxScrollExtent + position.viewportDimension;
+        _endlessText =
+            widget.text + _getSpaces(widget.intervalSpaces ?? 1) + widget.text;
+      });
+
       return;
     }
 
-    final double singleRoundExtent =
-        (position.maxScrollExtent + position.viewportDimension) / 2;
+    final double endlessTextWidth =
+        position.maxScrollExtent + position.viewportDimension;
+    final double singleRoundExtent = endlessTextWidth - _originalTextWidth!;
     final Duration duration = _getDuration(singleRoundExtent);
     if (duration == Duration.zero) return;
 
@@ -356,9 +383,21 @@ class _TextScrollState extends State<TextScroll> {
 
   void _onUpdate(TextScroll oldWidget) {
     if (widget.text != oldWidget.text && _endlessText != null) {
-      setState(() => _endlessText = null);
+      setState(() {
+        _endlessText = null;
+        _originalTextWidth = null;
+      });
       _scrollController.jumpTo(_scrollController.position.minScrollExtent);
     }
+  }
+
+  String _getSpaces(int number) {
+    String spaces = '';
+    for (int i = 0; i < number; i++) {
+      spaces += '\u{00A0}';
+    }
+
+    return spaces;
   }
 
   bool get _available => mounted && _scrollController.hasClients;
