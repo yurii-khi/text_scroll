@@ -44,7 +44,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: const [
                   Flexible(
                     child: TextScroll(
-                      'This is the sample text for Flutter TextScroll widget. ',
+                      'This is the sample text for Flutter TextScroll widget.',
+                      intervalSpaces: 10,
                       velocity: Velocity(pixelsPerSecond: Offset(50, 0)),
                     ),
                   ),
