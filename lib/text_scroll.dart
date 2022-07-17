@@ -222,20 +222,24 @@ class _TextScrollState extends State<TextScroll> {
 
     return Directionality(
       textDirection: widget.textDirection,
-      child: SingleChildScrollView(
+      child: Scrollbar(
         controller: _scrollController,
-        scrollDirection: Axis.horizontal,
-        child: widget.selectable
-            ? SelectableText(
-                _endlessText ?? widget.text,
-                style: widget.style,
-                textAlign: widget.textAlign,
-              )
-            : Text(
-                _endlessText ?? widget.text,
-                style: widget.style,
-                textAlign: widget.textAlign,
-              ),
+        thickness: 0,
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          scrollDirection: Axis.horizontal,
+          child: widget.selectable
+              ? SelectableText(
+                  _endlessText ?? widget.text,
+                  style: widget.style,
+                  textAlign: widget.textAlign,
+                )
+              : Text(
+                  _endlessText ?? widget.text,
+                  style: widget.style,
+                  textAlign: widget.textAlign,
+                ),
+        ),
       ),
     );
   }
