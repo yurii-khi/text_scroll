@@ -122,8 +122,6 @@ class TextScroll extends StatefulWidget {
 
   /// Determines pause interval between animation rounds.
   ///
-  /// Only allowed if [mode] is set to [TextScrollMode.bouncing].
-  ///
   /// Default is [Duration.zero].
   ///
   /// ### Example:
