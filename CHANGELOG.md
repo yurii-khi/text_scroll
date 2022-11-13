@@ -27,3 +27,6 @@
 * add `intervalSpaces` property for `TextScrollMode.endless`
 * bug fixes
 
+## 0.1.1
+* allow `pauseBetween` in `TextScrollMode.endless` mode
+
