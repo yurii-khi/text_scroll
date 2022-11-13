@@ -122,8 +122,6 @@ class TextScroll extends StatefulWidget {
 
   /// Determines pause interval between animation rounds.
   ///
-  /// Only allowed if [mode] is set to [TextScrollMode.bouncing].
-  ///
   /// Default is [Duration.zero].
   ///
   /// ### Example:
@@ -234,9 +232,6 @@ class _TextScrollState extends State<TextScroll> {
   @override
   Widget build(BuildContext context) {
     assert(
-        widget.pauseBetween == null || widget.mode == TextScrollMode.bouncing,
-        'pauseBetween is only available in TextScrollMode.bouncing mode');
-    assert(
         widget.intervalSpaces == null || widget.mode == TextScrollMode.endless,
         'intervalSpaces is only available in TextScrollMode.endless mode');
 
@@ -340,6 +335,11 @@ class _TextScrollState extends State<TextScroll> {
     );
     if (!_available) return;
     _scrollController.jumpTo(position.minScrollExtent);
+
+    ///Pause between animation rounds
+    if (widget.pauseBetween != null) {
+      await Future.delayed(widget.pauseBetween!);
+    }
   }
 
   Future<void> _animateBouncing() async {
