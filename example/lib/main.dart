@@ -87,7 +87,14 @@ class _MyHomePageState extends State<MyHomePage> {
               const TextScroll(
                 'Hey! I\'m a RTL text, check me out. Hey! I\'m a RTL text, check me out. Hey! I\'m a RTL text, check me out. ',
                 textDirection: TextDirection.rtl,
-              )
+              ),
+              const SizedBox(height: 20),
+              const TextScroll(
+                'This is the sample text for Flutter TextScroll widget with faded border.',
+                intervalSpaces: 10,
+                velocity: Velocity(pixelsPerSecond: Offset(50, 0)),
+                fadedBorder: true,
+              ),
             ],
           ),
         ),

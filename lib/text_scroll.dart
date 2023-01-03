@@ -36,6 +36,8 @@ class TextScroll extends StatefulWidget {
     this.velocity = const Velocity(pixelsPerSecond: Offset(80, 0)),
     this.selectable = false,
     this.intervalSpaces,
+    this.fadedBorder = false,
+    this.fadedBorderWidth = 0.2,
   }) : super(key: key);
 
   /// The text string, that would be scrolled.
@@ -194,6 +196,33 @@ class TextScroll extends StatefulWidget {
   /// ```
   final int? intervalSpaces;
 
+  /// Fades the text out to the left and right edges of the widget.
+  /// Default is `false`.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// TextScroll(
+  ///   'This is the sample text for Flutter TextScroll widget. ',
+  ///   fadedBorder: true,
+  /// )
+  /// ```
+  final bool fadedBorder;
+
+  /// Sets width of the faded border.
+  /// Default is `0.2`.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// TextScroll(
+  ///   'This is the sample text for Flutter TextScroll widget. ',
+  ///   fadedBorder: true,
+  ///   fadedBorderWidth: 0.25,
+  /// )
+  /// ```
+  final double? fadedBorderWidth;
+
   @override
   State<TextScroll> createState() => _TextScrollState();
 }
@@ -234,8 +263,15 @@ class _TextScrollState extends State<TextScroll> {
     assert(
         widget.intervalSpaces == null || widget.mode == TextScrollMode.endless,
         'intervalSpaces is only available in TextScrollMode.endless mode');
+    assert(
+        !widget.fadedBorder ||
+            (widget.fadedBorder &&
+                widget.fadedBorderWidth != null &&
+                widget.fadedBorderWidth! > 0 &&
+                widget.fadedBorderWidth! <= 1),
+        'fadedBorderInterval must be between 0 and 1 when fadedBorder is true');
 
-    return Directionality(
+    Widget builtWidget = Directionality(
       textDirection: widget.textDirection,
       child: SingleChildScrollView(
         controller: _scrollController,
@@ -254,6 +290,43 @@ class _TextScrollState extends State<TextScroll> {
               ),
       ),
     );
+
+    if (widget.fadedBorder) {
+      ///Fill list with amount of transparent colors to make the text visible
+      final List<Color> colors =
+          List.generate(1 ~/ widget.fadedBorderWidth! - 1, (index) {
+        return Colors.transparent;
+      }, growable: true);
+
+      ///Add black color to add gradient fade out
+      colors.insert(0, Colors.black);
+      colors.add(Colors.black);
+
+      ///Calculate the stops for the gradient
+      final List<double> stops =
+          List.generate(1 ~/ widget.fadedBorderWidth!, (index) {
+        return (index + 1) * widget.fadedBorderWidth!;
+      }, growable: true);
+
+      ///Add first stop to list
+      stops.insert(0, 0);
+
+      ///Apply ShaderMask to the text
+      builtWidget = ShaderMask(
+        shaderCallback: (Rect rect) {
+          return LinearGradient(
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+            colors: colors,
+            stops: stops,
+          ).createShader(rect);
+        },
+        blendMode: BlendMode.dstOut,
+        child: builtWidget,
+      );
+    }
+
+    return builtWidget;
   }
 
   Future<void> _initScroller(_) async {
