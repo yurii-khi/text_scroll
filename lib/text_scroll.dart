@@ -38,6 +38,7 @@ class TextScroll extends StatefulWidget {
     this.intervalSpaces,
     this.fadedBorder = false,
     this.fadedBorderWidth = 0.2,
+    this.fadeBorderSide = FadeBorderSide.both,
   }) : super(key: key);
 
   /// The text string, that would be scrolled.
@@ -223,6 +224,20 @@ class TextScroll extends StatefulWidget {
   /// ```
   final double? fadedBorderWidth;
 
+  /// Sets which side of the widget should be faded.
+  /// Default is [FadeBorderSide.both].
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// TextScroll(
+  ///  'This is the sample text for Flutter TextScroll widget. ',
+  ///  fadedBorder: true,
+  ///  fadeBorderSide: FadeBorderSide.left,
+  ///  )
+  ///  ```
+  final FadeBorderSide fadeBorderSide;
+
   @override
   State<TextScroll> createState() => _TextScrollState();
 }
@@ -299,8 +314,18 @@ class _TextScrollState extends State<TextScroll> {
       }, growable: true);
 
       ///Add black color to add gradient fade out
-      colors.insert(0, Colors.black);
-      colors.add(Colors.black);
+      if (widget.fadeBorderSide == FadeBorderSide.both ||
+          widget.fadeBorderSide == FadeBorderSide.left) {
+        colors.insert(0, Colors.black);
+      } else {
+        colors.add(Colors.transparent);
+      }
+      if (widget.fadeBorderSide == FadeBorderSide.both ||
+          widget.fadeBorderSide == FadeBorderSide.right) {
+        colors.add(Colors.black);
+      } else {
+        colors.add(Colors.transparent);
+      }
 
       ///Calculate the stops for the gradient
       final List<double> stops =
@@ -483,3 +508,10 @@ enum TextScrollMode {
   bouncing,
   endless,
 }
+
+/// Side of the text border to fade out.
+///
+/// [left] - fade out left side of the text.
+/// [right] - fade out right side of the text.
+/// [both] - fade out both sides of the text.
+enum FadeBorderSide { left, right, both }
