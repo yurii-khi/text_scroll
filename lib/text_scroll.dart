@@ -238,21 +238,25 @@ class _TextScrollState extends State<TextScroll> {
     return Directionality(
       textDirection: widget.textDirection,
       child: SingleChildScrollView(
-        controller: _scrollController,
-        physics: NeverScrollableScrollPhysics(),
-        scrollDirection: Axis.horizontal,
-        child: widget.selectable
-            ? SelectableText(
-                _endlessText ?? widget.text,
-                style: widget.style,
-                textAlign: widget.textAlign,
-              )
-            : Text(
-                _endlessText ?? widget.text,
-                style: widget.style,
-                textAlign: widget.textAlign,
-              ),
-      ),
+          controller: _scrollController,
+          physics: NeverScrollableScrollPhysics(),
+          scrollDirection: Axis.horizontal,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: _scrollController.position.viewportDimension,
+            ),
+            child: widget.selectable
+                ? SelectableText(
+                    _endlessText ?? widget.text,
+                    style: widget.style,
+                    textAlign: widget.textAlign,
+                  )
+                : Text(
+                    _endlessText ?? widget.text,
+                    style: widget.style,
+                    textAlign: widget.textAlign,
+                  ),
+          )),
     );
   }
 
