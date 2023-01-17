@@ -202,6 +202,7 @@ class _TextScrollState extends State<TextScroll> {
   final _scrollController = ScrollController();
   String? _endlessText;
   double? _originalTextWidth;
+  double _textMinWidth = 0;
   Timer? _timer;
   bool _running = false;
   int _counter = 0;
@@ -238,25 +239,33 @@ class _TextScrollState extends State<TextScroll> {
     return Directionality(
       textDirection: widget.textDirection,
       child: SingleChildScrollView(
-        controller: _scrollController,
-        physics: NeverScrollableScrollPhysics(),
-        scrollDirection: Axis.horizontal,
-        child: widget.selectable
-            ? SelectableText(
-                _endlessText ?? widget.text,
-                style: widget.style,
-                textAlign: widget.textAlign,
-              )
-            : Text(
-                _endlessText ?? widget.text,
-                style: widget.style,
-                textAlign: widget.textAlign,
-              ),
-      ),
+          controller: _scrollController,
+          physics: NeverScrollableScrollPhysics(),
+          scrollDirection: Axis.horizontal,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: _textMinWidth,
+            ),
+            child: widget.selectable
+                ? SelectableText(
+                    _endlessText ?? widget.text,
+                    style: widget.style,
+                    textAlign: widget.textAlign,
+                  )
+                : Text(
+                    _endlessText ?? widget.text,
+                    style: widget.style,
+                    textAlign: widget.textAlign,
+                  ),
+          )),
     );
   }
 
   Future<void> _initScroller(_) async {
+    setState(() {
+      _textMinWidth = _scrollController.position.viewportDimension;
+    });
+
     await _delayBefore();
 
     _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
