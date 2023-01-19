@@ -94,6 +94,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 intervalSpaces: 10,
                 velocity: Velocity(pixelsPerSecond: Offset(50, 0)),
                 fadedBorder: true,
+                fadeBorderVisibility: FadeBorderVisibility.auto,
+                fadeBorderSide: FadeBorderSide.both,
               ),
             ],
           ),
