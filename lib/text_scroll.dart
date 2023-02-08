@@ -32,6 +32,7 @@ class TextScroll extends StatefulWidget {
     this.numberOfReps,
     this.delayBefore,
     this.pauseBetween,
+    this.pauseOnBounce,
     this.mode = TextScrollMode.endless,
     this.velocity = const Velocity(pixelsPerSecond: Offset(80, 0)),
     this.selectable = false,
@@ -134,6 +135,21 @@ class TextScroll extends StatefulWidget {
   /// )
   /// ```
   final Duration? pauseBetween;
+
+  /// Determines pause interval before changing direction on a bounce.
+  ///
+  /// Default is [Duration.zero].
+  ///
+  /// ### Example:
+  ///
+  /// ```dart
+  /// TextScroll(
+  ///   'Pause animation when text reaches the end',
+  ///   mode: TextScrollMode.bouncing,
+  ///   pauseOnBounce: Duration(milliseconds: 300),
+  /// )
+  /// ```
+  final Duration? pauseOnBounce;
 
   /// Sets one of two different types of scrolling behavior.
   ///
@@ -352,6 +368,9 @@ class _TextScrollState extends State<TextScroll> {
       duration: duration,
       curve: Curves.linear,
     );
+    if(widget.pauseOnBounce != null) {
+      await Future.delayed(pauseOnBounce!);
+    }
     if (!_available) return;
     await _scrollController.animateTo(
       minExtent,
