@@ -369,7 +369,7 @@ class _TextScrollState extends State<TextScroll> {
       curve: Curves.linear,
     );
     if(widget.pauseOnBounce != null) {
-      await Future.delayed(pauseOnBounce!);
+      await Future.delayed(widget.pauseOnBounce!);
     }
     if (!_available) return;
     await _scrollController.animateTo(
