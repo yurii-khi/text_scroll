@@ -225,6 +225,7 @@ class _TextScrollState extends State<TextScroll> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _timer?.cancel();
     super.dispose();
   }
