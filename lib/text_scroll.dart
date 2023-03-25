@@ -374,7 +374,7 @@ class _TextScrollState extends State<TextScroll> {
       ///Add first stop to list
       stops.insert(0, 0);
 
-      /// Prerender text to get it's width
+      /// Pre-render text to get it's width
       final TextPainter textPrototype = TextPainter(
         text: TextSpan(
           text: _endlessText ?? widget.text,
@@ -423,6 +423,7 @@ class _TextScrollState extends State<TextScroll> {
   void _setTimer() {
     ///Cancel previous timer if it exists
     _timer?.cancel();
+
     ///Reset [_running] to allow for updates on changed velocity
     _running = false;
 
@@ -498,6 +499,7 @@ class _TextScrollState extends State<TextScroll> {
     );
     if (!_available) return;
     _scrollController.jumpTo(position.minScrollExtent);
+
     ///Pause between animation rounds
     if (widget.pauseBetween != null) {
       await Future.delayed(widget.pauseBetween!);
@@ -517,7 +519,7 @@ class _TextScrollState extends State<TextScroll> {
       duration: duration,
       curve: Curves.linear,
     );
-    if(widget.pauseOnBounce != null) {
+    if (widget.pauseOnBounce != null) {
       await Future.delayed(widget.pauseOnBounce!);
     }
     if (!_available) return;
