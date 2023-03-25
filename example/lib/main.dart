@@ -28,6 +28,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  bool _clicked = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -96,6 +98,18 @@ class _MyHomePageState extends State<MyHomePage> {
                 fadedBorder: true,
                 fadeBorderVisibility: FadeBorderVisibility.auto,
                 fadeBorderSide: FadeBorderSide.both,
+              ),
+              const SizedBox(height: 20),
+              GestureDetector(
+                onTap: () {
+                  setState(() => _clicked = true);
+                },
+                child: TextScroll(
+                  'Click me to start scrolling. Click me to start scrolling. Click me to start scrolling. Click me to start scrolling. ',
+                  velocity: Velocity(
+                    pixelsPerSecond: Offset(_clicked ? 150 : 0, 0),
+                  ),
+                ),
               ),
             ],
           ),
