@@ -1,3 +1,9 @@
+## 0.2.0
+* added support for dynamically updating widget parameters, enabling users to control scrolling behavior from parent widgets
+* added border fade effect
+* added bouncing mode animation pause at end of text
+* bug fixes and improvements
+
 ## 0.1.2
 * bug fixes
 
