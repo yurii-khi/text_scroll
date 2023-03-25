@@ -36,6 +36,10 @@ class TextScroll extends StatefulWidget {
     this.velocity = const Velocity(pixelsPerSecond: Offset(80, 0)),
     this.selectable = false,
     this.intervalSpaces,
+    this.fadedBorder = false,
+    this.fadedBorderWidth = 0.2,
+    this.fadeBorderSide = FadeBorderSide.both,
+    this.fadeBorderVisibility = FadeBorderVisibility.auto,
   }) : super(key: key);
 
   /// The text string, that would be scrolled.
@@ -194,6 +198,61 @@ class TextScroll extends StatefulWidget {
   /// ```
   final int? intervalSpaces;
 
+  /// Fades the text out to the left and right edges of the widget.
+  /// Default is `false`.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// TextScroll(
+  ///   'This is the sample text for Flutter TextScroll widget. ',
+  ///   fadedBorder: true,
+  /// )
+  /// ```
+  final bool fadedBorder;
+
+  /// Sets width of the faded border.
+  /// Default is `0.2`.
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// TextScroll(
+  ///   'This is the sample text for Flutter TextScroll widget. ',
+  ///   fadedBorder: true,
+  ///   fadedBorderWidth: 0.25,
+  /// )
+  /// ```
+  final double? fadedBorderWidth;
+
+  /// Sets which side of the widget should be faded.
+  /// Default is [FadeBorderSide.both].
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// TextScroll(
+  ///  'This is the sample text for Flutter TextScroll widget. ',
+  ///  fadedBorder: true,
+  ///  fadeBorderSide: FadeBorderSide.left,
+  ///  )
+  ///  ```
+  final FadeBorderSide fadeBorderSide;
+
+  /// Sets when the fadeBorder should be shown.
+  /// Default is [FadeBorderSide.auto].
+  ///
+  /// Example:
+  ///
+  /// ```dart
+  /// TextScroll(
+  ///  'This is the sample text for Flutter TextScroll widget. ',
+  ///  fadedBorder: true,
+  ///  fadeBorderVisibility: FadeBorderVisibility.always,
+  ///  )
+  ///  ```
+  final FadeBorderVisibility fadeBorderVisibility;
+
   @override
   State<TextScroll> createState() => _TextScrollState();
 }
@@ -237,8 +296,15 @@ class _TextScrollState extends State<TextScroll> {
     assert(
         widget.intervalSpaces == null || widget.mode == TextScrollMode.endless,
         'intervalSpaces is only available in TextScrollMode.endless mode');
+    assert(
+        !widget.fadedBorder ||
+            (widget.fadedBorder &&
+                widget.fadedBorderWidth != null &&
+                widget.fadedBorderWidth! > 0 &&
+                widget.fadedBorderWidth! <= 1),
+        'fadedBorderInterval must be between 0 and 1 when fadedBorder is true');
 
-    return Directionality(
+    Widget baseWidget = Directionality(
       textDirection: widget.textDirection,
       child: SingleChildScrollView(
         controller: _scrollController,
@@ -257,6 +323,79 @@ class _TextScrollState extends State<TextScroll> {
               ),
       ),
     );
+
+    /// Used to add the fade border effect, if enabled
+    Widget? fadeBorderWidget;
+
+    /// If fade border is enabled
+    if (widget.fadedBorder) {
+      ///Fill list with amount of transparent colors to make the text visible
+      final List<Color> colors =
+          List.generate(1 ~/ widget.fadedBorderWidth! - 1, (index) {
+        return Colors.transparent;
+      }, growable: true);
+
+      ///Add black color to add gradient fade out
+      if (widget.fadeBorderSide == FadeBorderSide.both ||
+          widget.fadeBorderSide == FadeBorderSide.left) {
+        colors.insert(0, Colors.black);
+      } else {
+        colors.add(Colors.transparent);
+      }
+      if (widget.fadeBorderSide == FadeBorderSide.both ||
+          widget.fadeBorderSide == FadeBorderSide.right) {
+        colors.add(Colors.black);
+      } else {
+        colors.add(Colors.transparent);
+      }
+
+      ///Calculate the stops for the gradient
+      final List<double> stops =
+          List.generate(1 ~/ widget.fadedBorderWidth!, (index) {
+        return (index + 1) * widget.fadedBorderWidth!;
+      }, growable: true);
+
+      ///Add first stop to list
+      stops.insert(0, 0);
+
+      /// Prerender text to get it's width
+      final TextPainter textPrototype = TextPainter(
+        text: TextSpan(
+          text: _endlessText ?? widget.text,
+          style: widget.style,
+        ),
+        textDirection: widget.textDirection,
+        textScaleFactor: MediaQuery.of(context).textScaleFactor,
+        textWidthBasis: TextWidthBasis.longestLine,
+      )..layout();
+
+      ///Apply ShaderMask to the text
+      fadeBorderWidget = LayoutBuilder(
+        builder: (context, constraints) {
+          ///When text is wider than the widget, apply ShaderMask
+          if (widget.fadeBorderVisibility == FadeBorderVisibility.always ||
+              constraints.maxWidth < textPrototype.size.width) {
+            return ShaderMask(
+              blendMode: BlendMode.dstOut,
+              shaderCallback: (rect) {
+                return LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: colors,
+                  stops: stops,
+                ).createShader(rect);
+              },
+              child: baseWidget,
+            );
+          } else {
+            ///When text is smaller than the widget, just return the text
+            return baseWidget;
+          }
+        },
+      );
+    }
+
+    return fadeBorderWidget ?? baseWidget;
   }
 
   Future<void> _initScroller(_) async {
@@ -423,3 +562,16 @@ enum TextScrollMode {
   bouncing,
   endless,
 }
+
+/// Side of the text border to fade out.
+///
+/// [left] - fade out left side of the text.
+/// [right] - fade out right side of the text.
+/// [both] - fade out both sides of the text.
+enum FadeBorderSide { left, right, both }
+
+/// Sets when the fade border will be applied
+///
+/// [always] - always show the border, independent of the text length
+/// [auto] - show the border only when the text is wider than the widget
+enum FadeBorderVisibility { always, auto }
