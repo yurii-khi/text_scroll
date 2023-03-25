@@ -220,6 +220,9 @@ class _TextScrollState extends State<TextScroll> {
   void didUpdateWidget(covariant TextScroll oldWidget) {
     _onUpdate(oldWidget);
 
+    ///Update timer to adapt to changes in [widget.velocity]
+    _setTimer();
+
     super.didUpdateWidget(oldWidget);
   }
 
@@ -258,6 +261,15 @@ class _TextScrollState extends State<TextScroll> {
 
   Future<void> _initScroller(_) async {
     await _delayBefore();
+    _setTimer();
+  }
+
+  /// Sets [_timer] for animation
+  void _setTimer() {
+    ///Cancel previous timer if it exists
+    _timer?.cancel();
+    ///Reset [_running] to allow for updates on changed velocity
+    _running = false;
 
     _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
       if (!_available) {
@@ -293,7 +305,6 @@ class _TextScrollState extends State<TextScroll> {
           }
       }
     }
-
     _running = false;
   }
 
@@ -332,7 +343,6 @@ class _TextScrollState extends State<TextScroll> {
     );
     if (!_available) return;
     _scrollController.jumpTo(position.minScrollExtent);
-
     ///Pause between animation rounds
     if (widget.pauseBetween != null) {
       await Future.delayed(widget.pauseBetween!);
@@ -372,6 +382,9 @@ class _TextScrollState extends State<TextScroll> {
   }
 
   Duration _getDuration(double extent) {
+    ///No movement when velocity offset dx equals 0
+    if (widget.velocity.pixelsPerSecond.dx == 0) return Duration.zero;
+
     final int milliseconds =
         (extent * 1000 / widget.velocity.pixelsPerSecond.dx).round();
 
