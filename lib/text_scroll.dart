@@ -296,8 +296,10 @@ class _TextScrollState extends State<TextScroll> {
   void didUpdateWidget(covariant TextScroll oldWidget) {
     _onUpdate(oldWidget);
 
-    ///Update timer to adapt to changes in [widget.velocity]
-    _setTimer();
+    if (oldWidget.velocity != widget.velocity) {
+      ///Update timer to adapt to changes in [widget.velocity]
+      _setTimer();
+    }
 
     super.didUpdateWidget(oldWidget);
   }
@@ -437,13 +439,18 @@ class _TextScrollState extends State<TextScroll> {
     _running = false;
 
     _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+      if (!mounted) {
+        _timer?.cancel();
+        _timer = null;
+        return;
+      }
       if (!_available) {
-        timer.cancel();
         return;
       }
       final int? maxReps = widget.numberOfReps;
       if (maxReps != null && _counter >= maxReps) {
-        timer.cancel();
+        _timer?.cancel();
+        _timer = null;
         return;
       }
 
