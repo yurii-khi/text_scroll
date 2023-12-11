@@ -439,14 +439,12 @@ class _TextScrollState extends State<TextScroll> {
     _running = false;
 
     _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
-      if (!mounted) {
+      if (!_available) {
         _timer?.cancel();
         _timer = null;
         return;
       }
-      if (!_available) {
-        return;
-      }
+
       final int? maxReps = widget.numberOfReps;
       if (maxReps != null && _counter >= maxReps) {
         _timer?.cancel();
