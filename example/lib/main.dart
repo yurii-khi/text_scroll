@@ -42,8 +42,8 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              Row(
-                children: const [
+              const Row(
+                children: [
                   Flexible(
                     child: TextScroll(
                       'This is the sample text for Flutter TextScroll widget.',
@@ -58,8 +58,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               ),
               const SizedBox(height: 20),
-              Row(
-                children: const [
+              const Row(
+                children: [
                   Expanded(flex: 2, child: Text('Static text')),
                   Flexible(
                     flex: 1,

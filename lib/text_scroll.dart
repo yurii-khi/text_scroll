@@ -388,7 +388,7 @@ class _TextScrollState extends State<TextScroll> {
           style: widget.style,
         ),
         textDirection: widget.textDirection,
-        textScaleFactor: MediaQuery.of(context).textScaleFactor,
+        textScaler: MediaQuery.of(context).textScaler,
         textWidthBasis: TextWidthBasis.longestLine,
       )..layout();
 
