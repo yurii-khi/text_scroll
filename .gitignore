@@ -76,3 +76,5 @@ build/
 .vscode/settings.json
 /pubspec.lock
 
+# FVM Version Cache
+.fvm/
