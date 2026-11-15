@@ -431,6 +431,25 @@ void main() {
       expect(jumpBacks(offsets), 1);
     });
 
+    testWidgets('switching between a Paint and a color does not restart', (
+      tester,
+    ) async {
+      final offsets = <double>[];
+      for (final textStyle in [
+        TextStyle(fontSize: 10, foreground: Paint()),
+        const TextStyle(fontSize: 10, color: Color(0xFF000000)),
+        const TextStyle(fontSize: 10),
+        TextStyle(fontSize: 10, background: Paint()),
+        const TextStyle(fontSize: 10, backgroundColor: Color(0xFFFFFFFF)),
+      ]) {
+        await mount(tester, scroll(textStyle: textStyle));
+        offsets.addAll(await sample(tester, const Duration(milliseconds: 300)));
+      }
+
+      expect(jumpBacks(offsets), 0);
+      expect(maxOf(offsets), closeTo(150, 10));
+    });
+
     testWidgets('a mode change restarts in the new mode', (tester) async {
       await mount(tester, scroll());
       await sample(tester, second);
