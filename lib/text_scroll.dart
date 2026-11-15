@@ -435,11 +435,7 @@ class _TextScrollState extends State<TextScroll> {
     if (!mounted) return;
     _timer = Timer.periodic(const Duration(milliseconds: 50), (_) {
       final int? maxReps = widget.numberOfReps;
-      if (maxReps != null && _counter >= maxReps) {
-        _timer?.cancel();
-        _timer = null;
-        return;
-      }
+      if (maxReps != null && _counter >= maxReps) return;
       if (!_running && _hasDimensions) _run();
     });
   }
@@ -547,6 +543,7 @@ class _TextScrollState extends State<TextScroll> {
 
   void _restart() {
     final int generation = ++_generation;
+    _counter = 0;
     _running = true;
     WidgetsBinding.instance
       ..addPostFrameCallback((_) {

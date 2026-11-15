@@ -6,6 +6,7 @@
 * restart when `mode`, `intervalSpaces` or a layout-changing `style` changes
 * count `numberOfReps` in full rounds: in endless mode `numberOfReps: n` now scrolls n rounds, not n - 1
 * restart at the new speed when `velocity` changes, in bouncing mode too and with `numberOfReps` set
+* count `numberOfReps` from zero after a restart, so a change scrolls again once the rounds ran out
 * cancel pending `delayBefore`, `pauseBetween` and `pauseOnBounce` timers on dispose
 * stop throwing `setState() or markNeedsBuild() called during build` in an ancestor scroll listener when the text changes
 

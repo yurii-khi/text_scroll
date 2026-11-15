@@ -407,6 +407,33 @@ void main() {
       expect(maxOf(offsets), closeTo(230, 10));
     });
 
+    testWidgets('a text change counts numberOfReps from zero', (tester) async {
+      await mount(tester, scroll(numberOfReps: 2));
+      await sample(tester, const Duration(seconds: 3));
+      await mount(
+        tester,
+        scroll(numberOfReps: 2, content: 'abcdefghijklmnopqrstuvwxyz'),
+      );
+      final offsets = await sample(tester, const Duration(seconds: 7));
+
+      expect(jumpBacks(offsets), 2);
+    });
+
+    testWidgets('a text change scrolls again after numberOfReps ran out', (
+      tester,
+    ) async {
+      await mount(tester, scroll(numberOfReps: 1));
+      await sample(tester, const Duration(seconds: 3));
+      await mount(
+        tester,
+        scroll(numberOfReps: 1, content: 'abcdefghijklmnopqrstuvwxyz'),
+      );
+      final offsets = await sample(tester, const Duration(seconds: 4));
+
+      expect(maxOf(offsets), closeTo(270, 10));
+      expect(jumpBacks(offsets), 1);
+    });
+
     testWidgets('a velocity change restarts the round at the new speed', (
       tester,
     ) async {
