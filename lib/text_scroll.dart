@@ -303,6 +303,8 @@ class _TextScrollState extends State<TextScroll> {
         layoutOf(widget.style).compareTo(layoutOf(oldWidget.style)) ==
             RenderComparison.layout) {
       _restart();
+    } else if (_timer?.isActive == false && _hasRoundsLeft) {
+      _startTicking();
     }
   }
 
@@ -440,8 +442,7 @@ class _TextScrollState extends State<TextScroll> {
 
   void _startTicking() {
     _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
-      final int? maxReps = widget.numberOfReps;
-      if (maxReps != null && _counter >= maxReps) {
+      if (!_hasRoundsLeft) {
         timer.cancel();
       } else if (!_running && _hasDimensions) {
         _run();
@@ -564,6 +565,11 @@ class _TextScrollState extends State<TextScroll> {
       _running = false;
     });
     _endlessText = null;
+  }
+
+  bool get _hasRoundsLeft {
+    final int? maxReps = widget.numberOfReps;
+    return maxReps == null || _counter < maxReps;
   }
 
   bool _isStale(int generation) => generation != _generation || !mounted;

@@ -501,6 +501,34 @@ void main() {
       expect(jumpBacks(offsets), 1);
     });
 
+    for (final (label, raised, rounds) in [
+      ('to 2 resumes for one more round', 2, 1),
+      ('to null resumes', null, 2),
+    ]) {
+      testWidgets('raising numberOfReps from 1 $label', (tester) async {
+        await mount(tester, scroll(numberOfReps: 1));
+        await sample(tester, const Duration(seconds: 3));
+        await mount(tester, scroll(numberOfReps: raised));
+        final offsets = await sample(tester, const Duration(seconds: 5));
+
+        expect(maxOf(offsets), closeTo(210, 10));
+        expect(jumpBacks(offsets), rounds);
+      });
+    }
+
+    testWidgets('lowering numberOfReps mid-round does not restart', (
+      tester,
+    ) async {
+      await mount(tester, scroll(numberOfReps: 3));
+      await sample(tester, second);
+      final before = offset(tester);
+      await mount(tester, scroll(numberOfReps: 1));
+      final offsets = await sample(tester, const Duration(seconds: 4));
+
+      expect(offsets.first, greaterThan(before));
+      expect(jumpBacks(offsets), 1);
+    });
+
     testWidgets('a velocity change restarts the round at the new speed', (
       tester,
     ) async {
