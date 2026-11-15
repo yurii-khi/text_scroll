@@ -98,7 +98,7 @@ class TextScroll extends StatefulWidget {
 
   /// Limits number of scroll animation rounds.
   ///
-  /// Default is [infinity].
+  /// Default is `null`, no limit.
   ///
   /// ### Example:
   ///
@@ -182,6 +182,7 @@ class TextScroll extends StatefulWidget {
   ///   'Animate text at 200px per second',
   ///   velocity: Velocity(pixelsPerSecond: Offset(200, 0)),
   /// )
+  /// ```
   final Velocity velocity;
 
   /// Allows users to select provided [text], copy it to clipboard etc.
@@ -208,7 +209,7 @@ class TextScroll extends StatefulWidget {
   /// ```dart
   /// TextScroll(
   ///   'This is the sample text for Flutter TextScroll widget. ',
-  ///   blankSpaces: 10,
+  ///   intervalSpaces: 10,
   /// )
   /// ```
   final int? intervalSpaces;
@@ -255,7 +256,7 @@ class TextScroll extends StatefulWidget {
   final FadeBorderSide fadeBorderSide;
 
   /// Sets when the fadeBorder should be shown.
-  /// Default is [FadeBorderSide.auto].
+  /// Default is [FadeBorderVisibility.auto].
   ///
   /// Example:
   ///
