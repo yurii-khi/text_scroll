@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 // ignore: deprecated_member_use
 import 'package:flutter/material.dart';
@@ -538,12 +539,10 @@ class _TextScrollState extends State<TextScroll> {
   }
 
   Duration _getDuration(double extent) {
-    if (widget.velocity.pixelsPerSecond.dx <= 0) return Duration.zero;
+    final double velocity = widget.velocity.pixelsPerSecond.dx;
+    if (velocity <= 0 || extent <= 0) return Duration.zero;
 
-    final int milliseconds =
-        (extent * 1000 / widget.velocity.pixelsPerSecond.dx).round();
-
-    return Duration(milliseconds: milliseconds);
+    return Duration(milliseconds: max(1, (extent * 1000 / velocity).round()));
   }
 
   bool _onMetricsChanged(ScrollMetricsNotification notification) {

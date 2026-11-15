@@ -155,6 +155,16 @@ void main() {
       expect(restAfterFirstJumpBack(offsets), inInclusiveRange(18, 24));
     });
 
+    testWidgets('a first frame later than a tick does not use up a round', (
+      tester,
+    ) async {
+      await mount(tester, scroll(numberOfReps: 1));
+      await tester.pump(const Duration(milliseconds: 500));
+      final offsets = await sample(tester, const Duration(seconds: 3));
+
+      expect(maxOf(offsets), closeTo(210, 10));
+    });
+
     for (final reps in [1, 2]) {
       testWidgets('numberOfReps: $reps scrolls that many rounds, then stops', (
         tester,
@@ -745,6 +755,13 @@ void main() {
       ),
     ),
     (
+      'a velocity too fast to see',
+      scroll(
+        numberOfReps: 1,
+        velocity: const Velocity(pixelsPerSecond: Offset(1000000, 0)),
+      ),
+    ),
+    (
       'bouncing text that fits',
       scroll(content: 'ABC', mode: TextScrollMode.bouncing, numberOfReps: 2),
     ),
@@ -761,9 +778,9 @@ void main() {
               }),
         ),
       );
-      await tester.pump(second);
+      await sample(tester, second);
       final settled = ticks;
-      await tester.pump(const Duration(seconds: 5));
+      await sample(tester, const Duration(seconds: 5));
 
       expect(ticks, settled);
     });
