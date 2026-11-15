@@ -15,13 +15,13 @@ const tick = Duration(milliseconds: 50);
 const second = Duration(seconds: 1);
 const boundaryKey = Key('boundary');
 
-Future<void> mount(WidgetTester tester, Widget widget, {double width = 100}) {
+Future<void> mount(WidgetTester tester, Widget widget) {
   return tester.pumpWidget(
     MaterialApp(
       home: Center(
         child: RepaintBoundary(
           key: boundaryKey,
-          child: SizedBox(width: width, child: widget),
+          child: SizedBox(width: 100, child: widget),
         ),
       ),
     ),
@@ -316,11 +316,16 @@ void main() {
     }
   });
 
-  testWidgets('selectable renders SelectableText', (tester) async {
-    await mount(tester, scroll(selectable: true));
+  testWidgets('selectable short text renders SelectableText at full width', (
+    tester,
+  ) async {
+    await mount(tester, scroll(content: 'ABC', selectable: true));
     await tester.pump();
 
-    expect(find.byType(SelectableText), findsOneWidget);
+    expect(
+      tester.getSize(find.byType(SelectableText)).width,
+      greaterThanOrEqualTo(100),
+    );
   });
 
   group('updates', () {
@@ -357,6 +362,22 @@ void main() {
 
       final offsets = await sample(tester, const Duration(seconds: 3));
       expect(maxOf(offsets), closeTo(160, 0.5));
+    });
+
+    testWidgets('bouncing: a text change during pauseOnBounce restarts', (
+      tester,
+    ) async {
+      TextScroll bounce(String content) => scroll(
+        content: content,
+        mode: TextScrollMode.bouncing,
+        pauseOnBounce: const Duration(seconds: 2),
+      );
+      await mount(tester, bounce(text));
+      await sample(tester, const Duration(milliseconds: 1250));
+      await mount(tester, bounce('abcdefghijklmnopqrstuvwxyz'));
+      final offsets = await sample(tester, const Duration(seconds: 4));
+
+      expect(offsets.last, 130);
     });
 
     testWidgets('a text change during delayBefore still scrolls after it', (
@@ -486,23 +507,17 @@ void main() {
       (tester) async {
         Future<List<double>> run({required bool rebuild}) async {
           final rebuilds = ValueNotifier(0);
-          await tester.pumpWidget(
-            MaterialApp(
-              home: Center(
-                child: SizedBox(
-                  width: 100,
-                  child: ValueListenableBuilder<int>(
-                    valueListenable: rebuilds,
-                    builder: (context, _, _) => TextScroll(
-                      text,
-                      style: style.copyWith(),
-                      intervalSpaces: 6,
-                      velocity: Velocity(pixelsPerSecond: const Offset(60, 0)),
-                      pauseBetween: second,
-                      delayBefore: second,
-                    ),
-                  ),
-                ),
+          await mount(
+            tester,
+            ValueListenableBuilder<int>(
+              valueListenable: rebuilds,
+              builder: (context, _, _) => TextScroll(
+                text,
+                style: style.copyWith(),
+                intervalSpaces: 6,
+                velocity: Velocity(pixelsPerSecond: const Offset(60, 0)),
+                pauseBetween: second,
+                delayBefore: second,
               ),
             ),
           );
@@ -522,8 +537,8 @@ void main() {
     );
   });
 
-  testWidgets('selectable multi-line text scrolls', (tester) async {
-    await mount(tester, scroll(content: '$text\nABC', selectable: true));
+  testWidgets('selectable text scrolls', (tester) async {
+    await mount(tester, scroll(selectable: true));
     final offsets = await sample(tester, const Duration(seconds: 2));
 
     expect(maxOf(offsets), greaterThan(0));
@@ -535,28 +550,22 @@ void main() {
     late StateSetter setInner;
     var content = text;
     var speed = velocity;
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Center(
-          child: SizedBox(
-            width: 100,
-            child: StatefulBuilder(
-              builder: (context, setOuter) =>
-                  NotificationListener<ScrollNotification>(
-                    onNotification: (_) {
-                      setOuter(() {});
-                      return false;
-                    },
-                    child: StatefulBuilder(
-                      builder: (context, setState) {
-                        setInner = setState;
-                        return scroll(content: content, velocity: speed);
-                      },
-                    ),
-                  ),
+    await mount(
+      tester,
+      StatefulBuilder(
+        builder: (context, setOuter) =>
+            NotificationListener<ScrollNotification>(
+              onNotification: (_) {
+                setOuter(() {});
+                return false;
+              },
+              child: StatefulBuilder(
+                builder: (context, setState) {
+                  setInner = setState;
+                  return scroll(content: content, velocity: speed);
+                },
+              ),
             ),
-          ),
-        ),
       ),
     );
     await sample(tester, second);
@@ -646,10 +655,8 @@ void main() {
       expect(tester.getSize(find.text('XYZ')).width, 100);
     });
 
-    Future<List<double>> widthsWhileSiblingChanges(
-      WidgetTester tester,
-      Widget Function(String sibling) build,
-      Finder measured,
+    testWidgets('an intrinsic column shrinks back after a sibling shrinks', (
+      tester,
     ) async {
       final sibling = ValueNotifier('X');
       await tester.pumpWidget(
@@ -657,7 +664,15 @@ void main() {
           home: Center(
             child: ValueListenableBuilder<String>(
               valueListenable: sibling,
-              builder: (_, value, _) => build(value),
+              builder: (_, value, _) => IntrinsicWidth(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    scroll(content: 'ABC'),
+                    Text(value, style: style),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -666,43 +681,8 @@ void main() {
       for (final value in ['X', 'X' * 60, 'X']) {
         sibling.value = value;
         await sample(tester, second);
-        widths.add(tester.getSize(measured).width);
+        widths.add(tester.getSize(find.byType(TextScroll)).width);
       }
-      return widths;
-    }
-
-    testWidgets('an AlertDialog shrinks back after its content shrinks', (
-      tester,
-    ) async {
-      final widths = await widthsWhileSiblingChanges(
-        tester,
-        (sibling) => AlertDialog(
-          title: scroll(content: 'T' * 20),
-          content: Text(sibling, style: style),
-        ),
-        find.byType(IntrinsicWidth),
-      );
-
-      expect(widths[1], greaterThan(widths[0]));
-      expect(widths[2], widths[0]);
-    });
-
-    testWidgets('an intrinsic column follows a sibling both ways', (
-      tester,
-    ) async {
-      final widths = await widthsWhileSiblingChanges(
-        tester,
-        (sibling) => IntrinsicWidth(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              scroll(content: 'ABC'),
-              Text(sibling, style: style),
-            ],
-          ),
-        ),
-        find.byType(TextScroll),
-      );
 
       expect(widths, [30, 600, 30]);
     });

@@ -557,17 +557,14 @@ class _TextScrollState extends State<TextScroll> {
     final int generation = ++_generation;
     _counter = 0;
     if (_timer?.isActive == false) _startTicking();
-    _running = true;
-    WidgetsBinding.instance
-      ..addPostFrameCallback((_) {
-        if (_isStale(generation)) return;
-        if (_hasDimensions) {
-          _scrollController.jumpTo(_scrollController.position.minScrollExtent);
-        }
-        _running = false;
-      })
-      ..ensureVisualUpdate();
-    if (_endlessText != null) setState(() => _endlessText = null);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_isStale(generation)) return;
+      if (_hasDimensions) {
+        _scrollController.jumpTo(_scrollController.position.minScrollExtent);
+      }
+      _running = false;
+    });
+    _endlessText = null;
   }
 
   bool _isStale(int generation) => generation != _generation || !mounted;
