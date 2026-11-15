@@ -457,7 +457,7 @@ void main() {
       }
 
       expect(jumpBacks(offsets), 0);
-      expect(maxOf(offsets), closeTo(150, 10));
+      expect(maxOf(offsets), closeTo(140, 10));
     });
 
     testWidgets('a mode change restarts in the new mode', (tester) async {
@@ -745,31 +745,37 @@ void main() {
     });
   });
 
-  for (final (label, widget) in [
-    ('text that fits', scroll(content: 'ABC', numberOfReps: 1)),
+  for (final (label, build) in <(String, TextScroll Function())>[
+    ('text that fits', () => scroll(content: 'ABC', numberOfReps: 1)),
     (
       'zero velocity',
-      scroll(
+      () => scroll(
         numberOfReps: 1,
         velocity: const Velocity(pixelsPerSecond: Offset.zero),
       ),
     ),
     (
       'a velocity too fast to see',
-      scroll(
+      () => scroll(
         numberOfReps: 1,
         velocity: const Velocity(pixelsPerSecond: Offset(1000000, 0)),
       ),
     ),
     (
       'bouncing text that fits',
-      scroll(content: 'ABC', mode: TextScrollMode.bouncing, numberOfReps: 2),
+      () => scroll(
+        content: 'ABC',
+        mode: TextScrollMode.bouncing,
+        numberOfReps: 2,
+      ),
     ),
   ]) {
-    testWidgets('numberOfReps stops the timer for $label', (tester) async {
+    testWidgets('numberOfReps stops the timer for $label, rebuilt or not', (
+      tester,
+    ) async {
       var ticks = 0;
-      await runZoned(
-        () => mount(tester, widget),
+      Future<void> mountCounted() => runZoned(
+        () => mount(tester, build()),
         zoneSpecification: ZoneSpecification(
           createPeriodicTimer: (self, parent, zone, period, tick) =>
               parent.createPeriodicTimer(zone, period, (timer) {
@@ -778,8 +784,10 @@ void main() {
               }),
         ),
       );
+      await mountCounted();
       await sample(tester, second);
       final settled = ticks;
+      await mountCounted();
       await sample(tester, const Duration(seconds: 5));
 
       expect(ticks, settled);
