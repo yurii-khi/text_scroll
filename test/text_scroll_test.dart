@@ -383,6 +383,32 @@ void main() {
       expect(maxOf(offsets), closeTo(147, 8));
     });
 
+    testWidgets('a parent rebuilding with a fresh Paint completes the round', (
+      tester,
+    ) async {
+      final rebuilds = ValueNotifier(0);
+      await mount(
+        tester,
+        ValueListenableBuilder<int>(
+          valueListenable: rebuilds,
+          builder: (_, _, _) => scroll(
+            textStyle: TextStyle(
+              fontSize: 10,
+              foreground: Paint()..color = const Color(0xFF000000),
+            ),
+          ),
+        ),
+      );
+      final offsets = <double>[];
+      for (var i = 0; i < 12; i++) {
+        rebuilds.value++;
+        offsets.addAll(await sample(tester, const Duration(milliseconds: 250)));
+      }
+
+      expect(maxOf(offsets), closeTo(210, 10));
+      expect(jumpBacks(offsets), 1);
+    });
+
     testWidgets('a mode change restarts in the new mode', (tester) async {
       await mount(tester, scroll());
       await sample(tester, second);

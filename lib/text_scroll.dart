@@ -292,14 +292,17 @@ class _TextScrollState extends State<TextScroll> {
   @override
   void didUpdateWidget(covariant TextScroll oldWidget) {
     super.didUpdateWidget(oldWidget);
+    final TextStyle style = widget.style ?? const TextStyle();
+    final TextStyle oldStyleWithNewPaints =
+        (oldWidget.style ?? const TextStyle()).copyWith(
+          foreground: style.foreground,
+          background: style.background,
+        );
     if (widget.text != oldWidget.text ||
         widget.mode != oldWidget.mode ||
         widget.velocity != oldWidget.velocity ||
         widget.intervalSpaces != oldWidget.intervalSpaces ||
-        (widget.style ?? const TextStyle()).compareTo(
-              oldWidget.style ?? const TextStyle(),
-            ) ==
-            RenderComparison.layout) {
+        style.compareTo(oldStyleWithNewPaints) == RenderComparison.layout) {
       _restart();
     }
   }
