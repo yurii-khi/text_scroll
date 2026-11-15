@@ -1,3 +1,14 @@
+## 0.3.0
+* require Dart 3.11 and Flutter 3.41
+* fix a null check crash when the widget is not laid out yet (#45)
+* fix the `duration > Duration.zero` assertion: a negative velocity now stands still, like zero (#43)
+* restart when `text` changes, in bouncing mode too (#44)
+* restart when `mode`, `intervalSpaces` or a layout-changing `style` changes
+* count `numberOfReps` in full rounds: in endless mode `numberOfReps: n` now scrolls n rounds, not n - 1
+* restart at the new speed when `velocity` changes, in bouncing mode too and with `numberOfReps` set
+* cancel pending `delayBefore`, `pauseBetween` and `pauseOnBounce` timers on dispose
+* stop throwing `setState() or markNeedsBuild() called during build` in an ancestor scroll listener when the text changes
+
 ## 0.2.1
 * bug fixes and improvements
 

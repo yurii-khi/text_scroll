@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math';
 import 'dart:ui' as ui;
 
@@ -15,11 +14,7 @@ const tick = Duration(milliseconds: 50);
 const second = Duration(seconds: 1);
 const boundaryKey = Key('boundary');
 
-Future<void> mount(
-  WidgetTester tester,
-  TextScroll widget, {
-  double width = 100,
-}) {
+Future<void> mount(WidgetTester tester, Widget widget, {double width = 100}) {
   return tester.pumpWidget(
     MaterialApp(
       home: Center(
@@ -34,6 +29,7 @@ Future<void> mount(
 
 TextScroll scroll({
   String content = text,
+  TextStyle textStyle = style,
   TextScrollMode mode = TextScrollMode.endless,
   Velocity velocity = velocity,
   TextDirection textDirection = TextDirection.ltr,
@@ -49,7 +45,7 @@ TextScroll scroll({
 }) {
   return TextScroll(
     content,
-    style: style,
+    style: textStyle,
     mode: mode,
     velocity: velocity,
     textDirection: textDirection,
@@ -100,11 +96,9 @@ int restAfterFirstJumpBack(List<double> offsets) {
   return offsets.skip(jump).takeWhile((o) => o == 0).length;
 }
 
-/// Pauses and delays are plain futures that outlive dispose.
-Future<void> unmountAndDrain(WidgetTester tester) async {
-  await tester.pumpWidget(const SizedBox());
-  await tester.pump(second + tick);
-}
+int jumpBacks(List<double> offsets) => [
+  for (var i = 1; i < offsets.length; i++) offsets[i] < offsets[i - 1],
+].where((jumped) => jumped).length;
 
 double maxOf(List<double> offsets) => offsets.reduce(max);
 
@@ -158,28 +152,20 @@ void main() {
       final offsets = await sample(tester, const Duration(seconds: 4));
 
       expect(restAfterFirstJumpBack(offsets), inInclusiveRange(18, 24));
-      await unmountAndDrain(tester);
     });
 
-    testWidgets(
-      'numberOfReps: 1 never scrolls, the setup round counts as a rep',
-      (tester) async {
-        await mount(tester, scroll(numberOfReps: 1));
-        final offsets = await sample(tester, const Duration(seconds: 3));
+    for (final reps in [1, 2]) {
+      testWidgets('numberOfReps: $reps scrolls that many rounds, then stops', (
+        tester,
+      ) async {
+        await mount(tester, scroll(numberOfReps: reps));
+        final offsets = await sample(tester, const Duration(seconds: 7));
 
-        expect(maxOf(offsets), 0);
-      },
-    );
-
-    testWidgets('numberOfReps: 2 scrolls one round, then stops', (
-      tester,
-    ) async {
-      await mount(tester, scroll(numberOfReps: 2));
-      final offsets = await sample(tester, const Duration(seconds: 5));
-
-      expect(maxOf(offsets), closeTo(210, 10));
-      expect(offsets.skip(offsets.length - 40), everyElement(0));
-    });
+        expect(maxOf(offsets), closeTo(210, 10));
+        expect(jumpBacks(offsets), reps);
+        expect(offsets.last, 0);
+      });
+    }
   });
 
   group('bouncing mode', () {
@@ -202,7 +188,6 @@ void main() {
       final offsets = await sample(tester, const Duration(seconds: 4));
 
       expect(longestRunAt(offsets, 100), inInclusiveRange(18, 24));
-      await unmountAndDrain(tester);
     });
 
     testWidgets('pauseBetween holds at the start between round trips', (
@@ -218,7 +203,6 @@ void main() {
         longestRunAt(offsets.skip(10).toList(), 0),
         inInclusiveRange(18, 24),
       );
-      await unmountAndDrain(tester);
     });
 
     testWidgets('numberOfReps: 1 makes one round trip, then stops', (
@@ -327,7 +311,6 @@ void main() {
         await tester.pump();
 
         expect(await alphasAt(tester, edges), expectedAlphas[side]);
-        await unmountAndDrain(tester);
       });
     }
   });
@@ -356,57 +339,319 @@ void main() {
       );
     });
 
-    testWidgets(
-      'bouncing: a text change mid-trip does not reset the scroll (#44)',
-      (tester) async {
-        await mount(tester, scroll(mode: TextScrollMode.bouncing));
-        await sample(tester, const Duration(milliseconds: 800));
-        final before = offset(tester);
-        await mount(
-          tester,
-          scroll(
-            mode: TextScrollMode.bouncing,
-            content: 'abcdefghijklmnopqrstuvwxyz',
-          ),
-        );
-        await tester.pump(tick);
+    testWidgets('bouncing: a text change mid-trip resets the scroll (#44)', (
+      tester,
+    ) async {
+      await mount(tester, scroll(mode: TextScrollMode.bouncing));
+      await sample(tester, const Duration(milliseconds: 800));
+      await mount(
+        tester,
+        scroll(
+          mode: TextScrollMode.bouncing,
+          content: 'abcdefghijklmnopqrstuvwxyz',
+        ),
+      );
+      await tester.pump();
+      expect(offset(tester), 0);
 
-        expect(offset(tester), greaterThan(before));
-      },
-    );
+      final offsets = await sample(tester, const Duration(seconds: 3));
+      expect(maxOf(offsets), closeTo(160, 0.5));
+    });
 
-    testWidgets('keeps scrolling after the box grows to fit the text (#40)', (
+    testWidgets('a text change during delayBefore still scrolls after it', (
+      tester,
+    ) async {
+      await mount(tester, scroll(delayBefore: second));
+      await tester.pump(const Duration(milliseconds: 500));
+      await mount(
+        tester,
+        scroll(delayBefore: second, content: 'abcdefghijklmnopqrstuvwxyz'),
+      );
+      final offsets = await sample(tester, const Duration(seconds: 2));
+
+      expect(maxOf(offsets), greaterThan(50));
+    });
+
+    testWidgets('a font size change mid-scroll re-measures the round', (
       tester,
     ) async {
       await mount(tester, scroll());
       await sample(tester, second);
-      await mount(tester, scroll(), width: 300);
+      await mount(tester, scroll(textStyle: style.copyWith(fontSize: 7)));
       final offsets = await sample(tester, const Duration(seconds: 3));
 
-      expect(shown(tester), '$text\u00A0$text');
-      expect(maxOf(offsets), greaterThan(100));
+      expect(maxOf(offsets), closeTo(147, 8));
     });
-  });
 
-  testWidgets('a negative velocity trips the duration > zero assertion (#43)', (
-    tester,
-  ) async {
-    final errors = <Object>[];
-    await runZonedGuarded(() async {
+    testWidgets('a mode change restarts in the new mode', (tester) async {
+      await mount(tester, scroll());
+      await sample(tester, second);
+      await mount(tester, scroll(mode: TextScrollMode.bouncing));
+      final offsets = await sample(tester, const Duration(seconds: 3));
+
+      expect(shown(tester), text);
+      expect(maxOf(offsets), closeTo(100, 0.5));
+    });
+
+    testWidgets('an intervalSpaces change restarts with the new gap', (
+      tester,
+    ) async {
+      await mount(tester, scroll());
+      await sample(tester, second);
+      await mount(tester, scroll(intervalSpaces: 3));
+      await tester.pump();
+      expect(offset(tester), 0);
+
+      final offsets = await sample(tester, const Duration(seconds: 3));
+      expect(shown(tester), '$text\u00A0\u00A0\u00A0$text');
+      expect(maxOf(offsets), closeTo(230, 10));
+    });
+
+    testWidgets('a velocity change restarts the round at the new speed', (
+      tester,
+    ) async {
+      await mount(tester, scroll(numberOfReps: 2));
+      await sample(tester, second);
       await mount(
         tester,
-        scroll(velocity: const Velocity(pixelsPerSecond: Offset(-100, 0))),
+        scroll(
+          numberOfReps: 2,
+          velocity: const Velocity(pixelsPerSecond: Offset(200, 0)),
+        ),
       );
-      await sample(tester, const Duration(milliseconds: 300));
-    }, (error, _) => errors.add(error));
+      await tester.pump();
+      expect(offset(tester), 0);
 
-    expect(errors, [
-      isAssertionError.having(
-        (e) => e.toString(),
-        'toString()',
-        contains('duration > Duration.zero'),
+      final offsets = await sample(tester, const Duration(seconds: 5));
+      expect(offsets[10] - offsets[5], closeTo(50, 1));
+      expect(jumpBacks(offsets), 2);
+    });
+
+    testWidgets(
+      'rebuilds with equal arguments do not disturb the scroll (#38)',
+      (tester) async {
+        Future<List<double>> run({required bool rebuild}) async {
+          final rebuilds = ValueNotifier(0);
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Center(
+                child: SizedBox(
+                  width: 100,
+                  child: ValueListenableBuilder<int>(
+                    valueListenable: rebuilds,
+                    builder: (context, _, _) => TextScroll(
+                      text,
+                      style: style.copyWith(),
+                      intervalSpaces: 6,
+                      velocity: Velocity(pixelsPerSecond: const Offset(60, 0)),
+                      pauseBetween: second,
+                      delayBefore: second,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+          final offsets = <double>[];
+          for (var i = 0; i < 100; i++) {
+            if (rebuild) rebuilds.value++;
+            offsets.addAll(await sample(tester, tick));
+          }
+          await tester.pumpWidget(const SizedBox());
+          return offsets;
+        }
+
+        final undisturbed = await run(rebuild: false);
+        expect(maxOf(undisturbed), greaterThan(100));
+        expect(await run(rebuild: true), undisturbed);
+      },
+    );
+  });
+
+  testWidgets('selectable multi-line text scrolls', (tester) async {
+    await mount(tester, scroll(content: '$text\nABC', selectable: true));
+    final offsets = await sample(tester, const Duration(seconds: 2));
+
+    expect(maxOf(offsets), greaterThan(0));
+  });
+
+  testWidgets('changes do not notify scroll listeners during build', (
+    tester,
+  ) async {
+    late StateSetter setInner;
+    var content = text;
+    var speed = velocity;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Center(
+          child: SizedBox(
+            width: 100,
+            child: StatefulBuilder(
+              builder: (context, setOuter) =>
+                  NotificationListener<ScrollNotification>(
+                    onNotification: (_) {
+                      setOuter(() {});
+                      return false;
+                    },
+                    child: StatefulBuilder(
+                      builder: (context, setState) {
+                        setInner = setState;
+                        return scroll(content: content, velocity: speed);
+                      },
+                    ),
+                  ),
+            ),
+          ),
+        ),
       ),
-    ]);
+    );
+    await sample(tester, second);
+    setInner(() => content = 'abcdefghijklmnopqrstuvwxyz');
+    await sample(tester, second);
+    setInner(() => speed = const Velocity(pixelsPerSecond: Offset(200, 0)));
+    await sample(tester, second);
+  });
+
+  for (final (dx, issue) in [(0.0, ''), (-100.0, ' (#43)')]) {
+    testWidgets('velocity $dx neither moves nor throws$issue', (tester) async {
+      await mount(
+        tester,
+        scroll(velocity: Velocity(pixelsPerSecond: Offset(dx, 0))),
+      );
+      final offsets = await sample(tester, const Duration(seconds: 2));
+
+      expect(offsets, everyElement(0));
+    });
+  }
+
+  group('layout', () {
+    testWidgets('waits for layout instead of throwing, then scrolls (#45)', (
+      tester,
+    ) async {
+      final content = ValueNotifier(text);
+      final cover = OverlayEntry(
+        opaque: true,
+        builder: (_) => const SizedBox(),
+      );
+      await mount(
+        tester,
+        Overlay(
+          initialEntries: [
+            OverlayEntry(
+              maintainState: true,
+              builder: (_) => ValueListenableBuilder<String>(
+                valueListenable: content,
+                builder: (_, value, _) => scroll(content: value),
+              ),
+            ),
+            cover,
+          ],
+        ),
+      );
+      await tester.pump(second);
+      content.value = 'abcdefghijklmnopqrstuvwxyz';
+      await tester.pump(second);
+      cover.remove();
+      final offsets = await sample(tester, const Duration(seconds: 2));
+
+      expect(maxOf(offsets), greaterThan(50));
+    });
+
+    testWidgets('a text change on a route never shown does not throw (#45)', (
+      tester,
+    ) async {
+      final content = ValueNotifier(text);
+      await tester.pumpWidget(
+        MaterialApp(
+          initialRoute: '/details',
+          routes: {
+            '/': (_) => ValueListenableBuilder<String>(
+              valueListenable: content,
+              builder: (_, value, _) => scroll(content: value),
+            ),
+            '/details': (_) => const SizedBox(),
+          },
+        ),
+      );
+      await tester.pump(second);
+      content.value = 'abcdefghijklmnopqrstuvwxyz';
+      await tester.pump(second);
+    });
+
+    testWidgets('centered text stays centered on the frame its text changes', (
+      tester,
+    ) async {
+      Future<void> mountCentered(String content) => mount(
+        tester,
+        TextScroll(content, style: style, textAlign: TextAlign.center),
+      );
+      await mountCentered('ABC');
+      await sample(tester, second);
+      await mountCentered('XYZ');
+
+      expect(tester.getSize(find.text('XYZ')).width, 100);
+    });
+
+    Future<List<double>> widthsWhileSiblingChanges(
+      WidgetTester tester,
+      Widget Function(String sibling) build,
+      Finder measured,
+    ) async {
+      final sibling = ValueNotifier('X');
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Center(
+            child: ValueListenableBuilder<String>(
+              valueListenable: sibling,
+              builder: (_, value, _) => build(value),
+            ),
+          ),
+        ),
+      );
+      final widths = <double>[];
+      for (final value in ['X', 'X' * 60, 'X']) {
+        sibling.value = value;
+        await sample(tester, second);
+        widths.add(tester.getSize(measured).width);
+      }
+      return widths;
+    }
+
+    testWidgets('an AlertDialog shrinks back after its content shrinks', (
+      tester,
+    ) async {
+      final widths = await widthsWhileSiblingChanges(
+        tester,
+        (sibling) => AlertDialog(
+          title: scroll(content: 'T' * 20),
+          content: Text(sibling, style: style),
+        ),
+        find.byType(IntrinsicWidth),
+      );
+
+      expect(widths[1], greaterThan(widths[0]));
+      expect(widths[2], widths[0]);
+    });
+
+    testWidgets('an intrinsic column follows a sibling both ways', (
+      tester,
+    ) async {
+      final widths = await widthsWhileSiblingChanges(
+        tester,
+        (sibling) => IntrinsicWidth(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              scroll(content: 'ABC'),
+              Text(sibling, style: style),
+            ],
+          ),
+        ),
+        find.byType(TextScroll),
+      );
+
+      expect(widths, [30, 600, 30]);
+    });
   });
 
   group('dispose', () {
@@ -418,15 +663,24 @@ void main() {
       await tester.pumpWidget(const SizedBox());
     });
 
-    testWidgets(
-      'unmounting during delayBefore: the delay runs on and starts a timer '
-      'that stops itself on its first tick',
-      (tester) async {
-        await mount(tester, scroll(delayBefore: second));
-        await tester.pump(const Duration(milliseconds: 500));
+    for (final (name, widget) in [
+      ('delayBefore', scroll(delayBefore: const Duration(seconds: 10))),
+      ('pauseBetween', scroll(pauseBetween: const Duration(seconds: 10))),
+      (
+        'pauseOnBounce',
+        scroll(
+          mode: TextScrollMode.bouncing,
+          pauseOnBounce: const Duration(seconds: 10),
+        ),
+      ),
+    ]) {
+      testWidgets('unmounting during $name leaves no timer running', (
+        tester,
+      ) async {
+        await mount(tester, widget);
+        await sample(tester, const Duration(milliseconds: 2500));
         await tester.pumpWidget(const SizedBox());
-        await tester.pump(const Duration(milliseconds: 500) + tick);
-      },
-    );
+      });
+    }
   });
 }

@@ -274,36 +274,43 @@ class TextScroll extends StatefulWidget {
 
 class _TextScrollState extends State<TextScroll> {
   final _scrollController = ScrollController();
+  final Set<Timer> _waits = {};
   String? _endlessText;
   double? _originalTextWidth;
-  double _textMinWidth = 0;
+  double? _textMinWidth;
   Timer? _timer;
   bool _running = false;
   int _counter = 0;
+  int _generation = 0;
 
   @override
   void initState() {
     super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback(_initScroller);
+    _start();
   }
 
   @override
   void didUpdateWidget(covariant TextScroll oldWidget) {
-    _onUpdate(oldWidget);
-
-    if (oldWidget.velocity != widget.velocity) {
-      ///Update timer to adapt to changes in [widget.velocity]
-      _setTimer();
-    }
-
     super.didUpdateWidget(oldWidget);
+    if (widget.text != oldWidget.text ||
+        widget.mode != oldWidget.mode ||
+        widget.velocity != oldWidget.velocity ||
+        widget.intervalSpaces != oldWidget.intervalSpaces ||
+        (widget.style ?? const TextStyle()).compareTo(
+              oldWidget.style ?? const TextStyle(),
+            ) ==
+            RenderComparison.layout) {
+      _restart();
+    }
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
     _timer?.cancel();
+    for (final wait in _waits) {
+      wait.cancel();
+    }
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -324,23 +331,26 @@ class _TextScrollState extends State<TextScroll> {
 
     Widget baseWidget = Directionality(
       textDirection: widget.textDirection,
-      child: SingleChildScrollView(
-        controller: _scrollController,
-        physics: NeverScrollableScrollPhysics(),
-        scrollDirection: Axis.horizontal,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(minWidth: _textMinWidth),
-          child: widget.selectable
-              ? SelectableText(
-                  _endlessText ?? widget.text,
-                  style: widget.style,
-                  textAlign: widget.textAlign,
-                )
-              : Text(
-                  _endlessText ?? widget.text,
-                  style: widget.style,
-                  textAlign: widget.textAlign,
-                ),
+      child: NotificationListener<ScrollMetricsNotification>(
+        onNotification: _onMetricsChanged,
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          physics: NeverScrollableScrollPhysics(),
+          scrollDirection: Axis.horizontal,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minWidth: _textMinWidth ?? 0),
+            child: widget.selectable
+                ? SelectableText(
+                    _endlessText ?? widget.text,
+                    style: widget.style,
+                    textAlign: widget.textAlign,
+                  )
+                : Text(
+                    _endlessText ?? widget.text,
+                    style: widget.style,
+                    textAlign: widget.textAlign,
+                  ),
+          ),
         ),
       ),
     );
@@ -420,143 +430,107 @@ class _TextScrollState extends State<TextScroll> {
     return fadeBorderWidget ?? baseWidget;
   }
 
-  Future<void> _initScroller(Duration _) async {
-    setState(() {
-      _textMinWidth = _scrollController.position.viewportDimension;
-    });
-
-    await _delayBefore();
-    _setTimer();
-  }
-
-  /// Sets [_timer] for animation
-  void _setTimer() {
-    ///Cancel previous timer if it exists
-    _timer?.cancel();
-
-    ///Reset [_running] to allow for updates on changed velocity
-    _running = false;
-
-    _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
-      if (!_available) {
-        _timer?.cancel();
-        _timer = null;
-        return;
-      }
-
+  Future<void> _start() async {
+    await _wait(widget.delayBefore);
+    if (!mounted) return;
+    _timer = Timer.periodic(const Duration(milliseconds: 50), (_) {
       final int? maxReps = widget.numberOfReps;
       if (maxReps != null && _counter >= maxReps) {
         _timer?.cancel();
         _timer = null;
         return;
       }
-
-      if (!_running) _run();
+      if (!_running && _hasDimensions) _run();
     });
   }
 
   Future<void> _run() async {
     _running = true;
-
-    final int? maxReps = widget.numberOfReps;
-    if (maxReps == null || _counter < maxReps) {
-      _counter++;
-
-      switch (widget.mode) {
-        case TextScrollMode.bouncing:
-          {
-            await _animateBouncing();
-            break;
-          }
-        default:
-          {
-            await _animateEndless();
-          }
-      }
-    }
+    final int generation = _generation;
+    final bool completed = widget.mode == TextScrollMode.bouncing
+        ? await _animateBouncing(generation)
+        : await _animateEndless(generation);
+    if (generation != _generation) return;
+    if (completed) _counter++;
     _running = false;
   }
 
-  Future<void> _animateEndless() async {
-    if (!_available) return;
-
+  Future<bool> _animateEndless(int generation) async {
     final ScrollPosition position = _scrollController.position;
-    final bool needsScrolling = position.maxScrollExtent > 0;
-    if (!needsScrolling) {
+    if (position.maxScrollExtent <= 0) {
       if (_endlessText != null) setState(() => _endlessText = null);
-      return;
+      return false;
     }
 
-    if (_endlessText == null || _originalTextWidth == null) {
+    if (_endlessText == null) {
       setState(() {
         _originalTextWidth =
             position.maxScrollExtent + position.viewportDimension;
         _endlessText =
-            widget.text + _getSpaces(widget.intervalSpaces ?? 1) + widget.text;
+            widget.text +
+            '\u{00A0}' * (widget.intervalSpaces ?? 1) +
+            widget.text;
       });
-
-      return;
+      return false;
     }
 
-    final double endlessTextWidth =
-        position.maxScrollExtent + position.viewportDimension;
-    final double singleRoundExtent = endlessTextWidth - _originalTextWidth!;
+    final double singleRoundExtent =
+        position.maxScrollExtent +
+        position.viewportDimension -
+        _originalTextWidth!;
     final Duration duration = _getDuration(singleRoundExtent);
-    if (duration == Duration.zero) return;
+    if (duration <= Duration.zero) return false;
 
-    if (!_available) return;
     await _scrollController.animateTo(
       singleRoundExtent,
       duration: duration,
       curve: Curves.linear,
     );
-    if (!_available) return;
+    if (_isStale(generation)) return false;
     _scrollController.jumpTo(position.minScrollExtent);
-
-    ///Pause between animation rounds
-    if (widget.pauseBetween != null) {
-      await Future.delayed(widget.pauseBetween!);
-    }
+    await _wait(widget.pauseBetween);
+    return !_isStale(generation);
   }
 
-  Future<void> _animateBouncing() async {
-    final double maxExtent = _scrollController.position.maxScrollExtent;
-    final double minExtent = _scrollController.position.minScrollExtent;
-    final double extent = maxExtent - minExtent;
-    final Duration duration = _getDuration(extent);
-    if (duration == Duration.zero) return;
+  Future<bool> _animateBouncing(int generation) async {
+    final ScrollPosition position = _scrollController.position;
+    final double maxExtent = position.maxScrollExtent;
+    final double minExtent = position.minScrollExtent;
+    final Duration duration = _getDuration(maxExtent - minExtent);
+    if (duration <= Duration.zero) return false;
 
-    if (!_available) return;
     await _scrollController.animateTo(
       maxExtent,
       duration: duration,
       curve: Curves.linear,
     );
-    if (widget.pauseOnBounce != null) {
-      await Future.delayed(widget.pauseOnBounce!);
-    }
-    if (!_available) return;
+    if (_isStale(generation)) return false;
+    await _wait(widget.pauseOnBounce);
+    if (_isStale(generation)) return false;
     await _scrollController.animateTo(
       minExtent,
       duration: duration,
       curve: Curves.linear,
     );
-    if (!_available) return;
-    if (widget.pauseBetween != null) {
-      await Future<dynamic>.delayed(widget.pauseBetween!);
-    }
+    if (_isStale(generation)) return false;
+    await _wait(widget.pauseBetween);
+    return !_isStale(generation);
   }
 
-  Future<void> _delayBefore() async {
-    final Duration? delayBefore = widget.delayBefore;
-    if (delayBefore == null) return;
-
-    await Future<dynamic>.delayed(delayBefore);
+  Future<void> _wait(Duration? duration) {
+    if (duration == null) return Future.value();
+    final completer = Completer<void>();
+    late final Timer timer;
+    timer = Timer(duration, () {
+      _waits.remove(timer);
+      completer.complete();
+    });
+    _waits.add(timer);
+    return completer.future;
   }
 
   Duration _getDuration(double extent) {
-    ///No movement when velocity offset dx equals 0
-    if (widget.velocity.pixelsPerSecond.dx == 0) return Duration.zero;
+    if (widget.velocity.pixelsPerSecond.dx <= 0) return Duration.zero;
 
     final int milliseconds =
         (extent * 1000 / widget.velocity.pixelsPerSecond.dx).round();
@@ -564,26 +538,32 @@ class _TextScrollState extends State<TextScroll> {
     return Duration(milliseconds: milliseconds);
   }
 
-  void _onUpdate(TextScroll oldWidget) {
-    if (widget.text != oldWidget.text && _endlessText != null) {
-      setState(() {
-        _endlessText = null;
-        _originalTextWidth = null;
-      });
-      _scrollController.jumpTo(_scrollController.position.minScrollExtent);
+  bool _onMetricsChanged(ScrollMetricsNotification notification) {
+    if (notification.depth == 0 && _textMinWidth == null) {
+      setState(() => _textMinWidth = notification.metrics.viewportDimension);
     }
+    return false;
   }
 
-  String _getSpaces(int number) {
-    String spaces = '';
-    for (int i = 0; i < number; i++) {
-      spaces += '\u{00A0}';
-    }
-
-    return spaces;
+  void _restart() {
+    final int generation = ++_generation;
+    _running = true;
+    WidgetsBinding.instance
+      ..addPostFrameCallback((_) {
+        if (_isStale(generation)) return;
+        if (_hasDimensions) {
+          _scrollController.jumpTo(_scrollController.position.minScrollExtent);
+        }
+        _running = false;
+      })
+      ..ensureVisualUpdate();
+    if (_endlessText != null) setState(() => _endlessText = null);
   }
 
-  bool get _available => mounted && _scrollController.hasClients;
+  bool _isStale(int generation) => generation != _generation || !mounted;
+
+  bool get _hasDimensions =>
+      _scrollController.hasClients && _scrollController.position.haveDimensions;
 }
 
 /// Animation types for [TextScroll] widget.
