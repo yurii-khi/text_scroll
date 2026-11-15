@@ -304,9 +304,8 @@ class _TextScrollState extends State<TextScroll> {
         layoutOf(widget.style).compareTo(layoutOf(oldWidget.style)) ==
             RenderComparison.layout) {
       _restart();
-    } else if (_timer?.isActive == false && _hasRoundsLeft) {
-      _startTicking();
     }
+    if (_timer?.isActive == false && _hasRoundsLeft) _startTicking();
   }
 
   @override
@@ -555,7 +554,6 @@ class _TextScrollState extends State<TextScroll> {
   void _restart() {
     final int generation = ++_generation;
     _counter = 0;
-    if (_timer?.isActive == false) _startTicking();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_isStale(generation)) return;
       if (_hasDimensions) {
