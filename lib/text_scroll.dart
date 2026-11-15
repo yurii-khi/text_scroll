@@ -436,10 +436,17 @@ class _TextScrollState extends State<TextScroll> {
   Future<void> _start() async {
     await _wait(widget.delayBefore);
     if (!mounted) return;
-    _timer = Timer.periodic(const Duration(milliseconds: 50), (_) {
+    _startTicking();
+  }
+
+  void _startTicking() {
+    _timer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
       final int? maxReps = widget.numberOfReps;
-      if (maxReps != null && _counter >= maxReps) return;
-      if (!_running && _hasDimensions) _run();
+      if (maxReps != null && _counter >= maxReps) {
+        timer.cancel();
+      } else if (!_running && _hasDimensions) {
+        _run();
+      }
     });
   }
 
@@ -458,7 +465,7 @@ class _TextScrollState extends State<TextScroll> {
     final ScrollPosition position = _scrollController.position;
     if (position.maxScrollExtent <= 0) {
       if (_endlessText != null) setState(() => _endlessText = null);
-      return false;
+      return true;
     }
 
     if (_endlessText == null) {
@@ -478,7 +485,9 @@ class _TextScrollState extends State<TextScroll> {
         position.viewportDimension -
         _originalTextWidth!;
     final Duration duration = _getDuration(singleRoundExtent);
-    if (duration <= Duration.zero) return false;
+    if (duration <= Duration.zero) {
+      return widget.velocity.pixelsPerSecond.dx <= 0;
+    }
 
     await _scrollController.animateTo(
       singleRoundExtent,
@@ -496,7 +505,7 @@ class _TextScrollState extends State<TextScroll> {
     final double maxExtent = position.maxScrollExtent;
     final double minExtent = position.minScrollExtent;
     final Duration duration = _getDuration(maxExtent - minExtent);
-    if (duration <= Duration.zero) return false;
+    if (duration <= Duration.zero) return true;
 
     await _scrollController.animateTo(
       maxExtent,
@@ -547,6 +556,7 @@ class _TextScrollState extends State<TextScroll> {
   void _restart() {
     final int generation = ++_generation;
     _counter = 0;
+    if (_timer?.isActive == false) _startTicking();
     _running = true;
     WidgetsBinding.instance
       ..addPostFrameCallback((_) {

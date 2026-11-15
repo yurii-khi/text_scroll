@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 import 'dart:ui' as ui;
 
@@ -706,6 +707,40 @@ void main() {
       expect(widths, [30, 600, 30]);
     });
   });
+
+  for (final (label, widget) in [
+    ('text that fits', scroll(content: 'ABC', numberOfReps: 1)),
+    (
+      'zero velocity',
+      scroll(
+        numberOfReps: 1,
+        velocity: const Velocity(pixelsPerSecond: Offset.zero),
+      ),
+    ),
+    (
+      'bouncing text that fits',
+      scroll(content: 'ABC', mode: TextScrollMode.bouncing, numberOfReps: 2),
+    ),
+  ]) {
+    testWidgets('numberOfReps stops the timer for $label', (tester) async {
+      var ticks = 0;
+      await runZoned(
+        () => mount(tester, widget),
+        zoneSpecification: ZoneSpecification(
+          createPeriodicTimer: (self, parent, zone, period, tick) =>
+              parent.createPeriodicTimer(zone, period, (timer) {
+                ticks++;
+                tick(timer);
+              }),
+        ),
+      );
+      await tester.pump(second);
+      final settled = ticks;
+      await tester.pump(const Duration(seconds: 5));
+
+      expect(ticks, settled);
+    });
+  }
 
   group('dispose', () {
     testWidgets('unmounting mid-scroll leaves no timer running', (
