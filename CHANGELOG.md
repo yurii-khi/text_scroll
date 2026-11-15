@@ -2,7 +2,6 @@
 * require Dart 3.11 and Flutter 3.41
 * fix a null check crash when the widget is not laid out yet (#45)
 * fix the `duration > Duration.zero` assertion: a negative velocity now stands still, like zero (#43)
-* scroll at very high velocities, where a round's duration rounded down to zero and the text stood still
 * restart when `text` changes, in bouncing mode too (#44)
 * restart when `mode`, `intervalSpaces` or a layout-changing `style` changes
 * count `numberOfReps` in full rounds: in endless mode `numberOfReps: n` now scrolls n rounds, not n - 1
